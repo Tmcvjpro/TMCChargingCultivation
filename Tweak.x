@@ -2,14 +2,13 @@
 #import <QuartzCore/QuartzCore.h>
 #import <Foundation/Foundation.h>
 
-// --- KHAI BÁO CLASS HỆ THỐNG ĐỂ FIX LỖI ---
 @interface CSCoverSheetViewController : UIViewController
 @end
 
 @interface SBUIController : NSObject
 @end
 
-// --- KHAI BÁO CÁC CẢNH GIỚI ---
+// --- KHAI BÁO CẢNH GIỚI ---
 NSString* getRealmName(int batteryLevel) {
     if (batteryLevel <= 4) return @"PHÀM NHÂN";
     if (batteryLevel <= 9) return @"LUYỆN KHÍ";
@@ -36,12 +35,12 @@ int getNextRealmThreshold(int batteryLevel) {
     return 100;
 }
 
-// --- GIAO DIỆN TU LUYỆN (UIView) ---
+// --- GIAO DIỆN TU LUYỆN PHÓNG TO ---
 @interface TMCCultivationView : UIView
-@property (nonatomic, strong) UILabel *monkLabel;
+@property (nonatomic, strong) UIImageView *monkImageView;
 @property (nonatomic, strong) UIView *arrayView;
 @property (nonatomic, strong) UILabel *statusLabel;
-@property (nonatomic, strong) CAEmitterLayer *qiEmitter;
+@property (nonatomic, strong) CAEmitterLayer *screenEdgeQiEmitter;
 @property (nonatomic, assign) int lastBatteryLevel;
 @property (nonatomic, strong) NSDate *lastBatteryChangeTime;
 @end
@@ -53,33 +52,38 @@ int getNextRealmThreshold(int batteryLevel) {
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         
-        // 1. Vẽ Trận pháp
-        [self setupMagicArray];
+        // 1. Trận pháp tiên hiệp (Đã phóng to rộng 280px)
+        [self setupXianXiaArray];
         
-        // 2. Tu sĩ đả tọa
-        self.monkLabel = [[UILabel alloc] initWithFrame:CGRectMake(50, 40, 80, 80)];
-        self.monkLabel.text = @"🧘🏻‍♂️";
-        self.monkLabel.font = [UIFont systemFontOfSize:55];
-        self.monkLabel.textAlignment = NSTextAlignmentCenter;
-        [self addSubview:self.monkLabel];
+        // 2. Nhân vật Tu sĩ (Phóng to kích thước 130x130px, nằm chính giữa)
+        self.monkImageView = [[UIImageView alloc] initWithFrame:CGRectMake(75, 65, 130, 130)];
+        self.monkImageView.contentMode = UIViewContentModeScaleAspectFit;
+        UIImage *tuSiImg = [UIImage imageWithContentsOfFile:@"/var/jb/tu_si.png"];
+        if (tuSiImg) {
+            self.monkImageView.image = tuSiImg;
+        } else {
+            UILabel *fallback = [[UILabel alloc] initWithFrame:self.monkImageView.bounds];
+            fallback.text = @"🧘🏻‍♂️";
+            fallback.font = [UIFont systemFontOfSize:85];
+            fallback.textAlignment = NSTextAlignmentCenter;
+            [self.monkImageView addSubview:fallback];
+        }
+        [self addSubview:self.monkImageView];
         
-        // 3. Chữ cảnh giới & ETA
-        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 165, 180, 40)];
+        // 3. Chữ cảnh giới & ETA (Dời xuống thấp hơn chút để không che nhân vật)
+        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(-20, 225, 320, 50)];
         self.statusLabel.numberOfLines = 2;
         self.statusLabel.textAlignment = NSTextAlignmentCenter;
-        self.statusLabel.textColor = [UIColor colorWithWhite:0.9 alpha:0.9];
-        self.statusLabel.font = [UIFont systemFontOfSize:11 weight:UIFontWeightThin];
+        self.statusLabel.textColor = [UIColor whiteColor];
+        self.statusLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightBold];
+        self.statusLabel.layer.shadowColor = [UIColor colorWithRed:0.0 green:0.9 blue:1.0 alpha:1.0].CGColor;
+        self.statusLabel.layer.shadowRadius = 8.0;
+        self.statusLabel.layer.shadowOpacity = 1.0;
+        self.statusLabel.layer.shadowOffset = CGSizeZero;
         [self addSubview:self.statusLabel];
         
-        // 4. Hệ thống hạt Linh khí bay vào
-        self.qiEmitter = [CAEmitterLayer layer];
-        self.qiEmitter.emitterPosition = CGPointMake(90, 80);
-        self.qiEmitter.emitterSize = CGSizeMake(130, 130);
-        self.qiEmitter.emitterShape = kCAEmitterLayerCircle;
-        self.qiEmitter.renderMode = kCAEmitterLayerAdditive;
-        [self.layer addSublayer:self.qiEmitter];
-        
-        [self setupQiParticles];
+        // 4. Linh khí từ viền bay vào
+        [self setupEdgeQiEmitter];
         
         self.lastBatteryLevel = -1;
         self.lastBatteryChangeTime = [NSDate date];
@@ -87,57 +91,92 @@ int getNextRealmThreshold(int batteryLevel) {
     return self;
 }
 
-- (void)setupMagicArray {
-    self.arrayView = [[UIView alloc] initWithFrame:CGRectMake(20, 10, 140, 140)];
+- (void)setupXianXiaArray {
+    // Phóng to khung trận pháp lên 280x280px
+    self.arrayView = [[UIView alloc] initWithFrame:CGRectMake(-20, -25, 280, 280)];
     [self addSubview:self.arrayView];
     
-    CAShapeLayer *outerCircle = [CAShapeLayer layer];
-    outerCircle.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(5, 5, 130, 130)].CGPath;
-    outerCircle.strokeColor = [UIColor colorWithWhite:0.8 alpha:0.4].CGColor;
-    outerCircle.fillColor = [UIColor clearColor].CGColor;
-    outerCircle.lineWidth = 1.0;
-    [self.arrayView.layer addSublayer:outerCircle];
+    UIColor *arrayColor = [UIColor colorWithRed:0.1 green:0.95 blue:1.0 alpha:1.0];
     
-    CAShapeLayer *dashedCircle = [CAShapeLayer layer];
-    dashedCircle.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(20, 20, 100, 100)].CGPath;
-    dashedCircle.strokeColor = [UIColor colorWithWhite:0.9 alpha:0.3].CGColor;
-    dashedCircle.fillColor = [UIColor clearColor].CGColor;
-    dashedCircle.lineWidth = 1.0;
-    dashedCircle.lineDashPattern = @[@3, @5];
-    [self.arrayView.layer addSublayer:dashedCircle];
+    // Vòng ngoài cùng
+    CAShapeLayer *outerRing = [CAShapeLayer layer];
+    outerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(10, 10, 260, 260)].CGPath;
+    outerRing.strokeColor = arrayColor.CGColor;
+    outerRing.fillColor = [UIColor clearColor].CGColor;
+    outerRing.lineWidth = 2.5;
+    outerRing.shadowColor = arrayColor.CGColor;
+    outerRing.shadowRadius = 12.0;
+    outerRing.shadowOpacity = 0.9;
+    outerRing.shadowOffset = CGSizeZero;
+    [self.arrayView.layer addSublayer:outerRing];
     
-    UILabel *runeLabel = [[UILabel alloc] initWithFrame:self.arrayView.bounds];
-    runeLabel.text = @"۞"; 
-    runeLabel.font = [UIFont systemFontOfSize:90 weight:UIFontWeightUltraLight];
-    runeLabel.textColor = [UIColor colorWithWhite:0.9 alpha:0.2];
-    runeLabel.textAlignment = NSTextAlignmentCenter;
-    [self.arrayView addSubview:runeLabel];
+    // Vòng trung tâm đứt khúc
+    CAShapeLayer *midRing = [CAShapeLayer layer];
+    midRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(40, 40, 200, 200)].CGPath;
+    midRing.strokeColor = arrayColor.CGColor;
+    midRing.fillColor = [UIColor clearColor].CGColor;
+    midRing.lineWidth = 2.0;
+    midRing.lineDashPattern = @[@10, @8, @4, @8];
+    midRing.shadowColor = arrayColor.CGColor;
+    midRing.shadowRadius = 10.0;
+    midRing.shadowOpacity = 1.0;
+    midRing.shadowOffset = CGSizeZero;
+    [self.arrayView.layer addSublayer:midRing];
     
-    CABasicAnimation *rotation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
-    rotation.toValue = @(M_PI * 2.0);
-    rotation.duration = 25.0; 
-    rotation.repeatCount = HUGE_VALF;
-    [self.arrayView.layer addAnimation:rotation forKey:@"rotationAnimation"];
+    // Vòng tụ linh trong
+    CAShapeLayer *innerRing = [CAShapeLayer layer];
+    innerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(70, 70, 140, 140)].CGPath;
+    innerRing.strokeColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:0.9].CGColor;
+    innerRing.fillColor = [UIColor clearColor].CGColor;
+    innerRing.lineWidth = 1.2;
+    [self.arrayView.layer addSublayer:innerRing];
+    
+    // Ký tự tâm trận
+    UILabel *rune = [[UILabel alloc] initWithFrame:self.arrayView.bounds];
+    rune.text = @"☸"; 
+    rune.font = [UIFont systemFontOfSize:150 weight:UIFontWeightUltraLight];
+    rune.textColor = [arrayColor colorWithAlphaComponent:0.3];
+    rune.textAlignment = NSTextAlignmentCenter;
+    [self.arrayView addSubview:rune];
+    
+    // Hoạt ảnh xoay
+    CABasicAnimation *spin = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+    spin.toValue = @(M_PI * 2.0);
+    spin.duration = 20.0;
+    spin.repeatCount = HUGE_VALF;
+    [self.arrayView.layer addAnimation:spin forKey:@"spinAnimation"];
 }
 
-- (void)setupQiParticles {
-    CAEmitterCell *qiCell = [CAEmitterCell emitterCell];
+- (void)setupEdgeQiEmitter {
+    self.screenEdgeQiEmitter = [CAEmitterLayer layer];
     
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(4, 4), NO, 0);
-    [[UIColor colorWithRed:0.7 green:0.9 blue:1.0 alpha:0.6] setFill];
-    [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 4, 4)] fill];
-    UIImage *particleImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIWindow *window = [UIApplication sharedApplication].keyWindow;
+    CGFloat screenW = window.bounds.size.width > 0 ? window.bounds.size.width : 390;
+    CGFloat screenH = window.bounds.size.height > 0 ? window.bounds.size.height : 844;
+    
+    self.screenEdgeQiEmitter.emitterPosition = CGPointMake(screenW / 2.0, screenH / 2.0);
+    self.screenEdgeQiEmitter.emitterSize = CGSizeMake(screenW - 20, screenH - 20);
+    self.screenEdgeQiEmitter.emitterShape = kCAEmitterLayerRectangle;
+    self.screenEdgeQiEmitter.renderMode = kCAEmitterLayerAdditive;
+    
+    CAEmitterCell *edgeCell = [CAEmitterCell emitterCell];
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(10, 10), NO, 0); // Tăng kích thước hạt linh khí to rõ hơn
+    [[UIColor colorWithRed:0.2 green:1.0 blue:1.0 alpha:1.0] setFill];
+    [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 10, 10)] fill];
+    UIImage *qiDot = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
-    qiCell.contents = (id)particleImage.CGImage;
-    qiCell.birthRate = 6.0; 
-    qiCell.lifetime = 4.0;
-    qiCell.velocity = -15.0; 
-    qiCell.alphaSpeed = -0.2; 
-    qiCell.scale = 0.5;
-    qiCell.scaleRange = 0.2;
+    edgeCell.contents = (id)qiDot.CGImage;
+    edgeCell.birthRate = 55.0;  // Tăng lượng hạt dày đặc
+    edgeCell.lifetime = 2.2;
+    edgeCell.velocity = -200.0; // Bắn mạnh từ viền vào
+    edgeCell.velocityRange = 50.0;
+    edgeCell.alphaSpeed = -0.25;
+    edgeCell.scale = 0.9;
+    edgeCell.scaleRange = 0.4;
     
-    self.qiEmitter.emitterCells = @[qiCell];
+    self.screenEdgeQiEmitter.emitterCells = @[edgeCell];
+    [self.layer addSublayer:self.screenEdgeQiEmitter];
 }
 
 - (void)updateTuVi:(int)currentBattery {
@@ -184,11 +223,9 @@ int getNextRealmThreshold(int batteryLevel) {
 
 - (void)triggerBreakthrough {
     [UIView animateWithDuration:0.5 animations:^{
-        self.arrayView.alpha = 1.0;
-        self.arrayView.transform = CGAffineTransformMakeScale(1.15, 1.15);
+        self.arrayView.transform = CGAffineTransformMakeScale(1.25, 1.25);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:2.0 animations:^{
-            self.arrayView.alpha = 1.0;
             self.arrayView.transform = CGAffineTransformIdentity;
         }];
     }];
@@ -196,16 +233,16 @@ int getNextRealmThreshold(int batteryLevel) {
 
 - (void)enableTribulationMode {
     CABasicAnimation *shake = [CABasicAnimation animationWithKeyPath:@"position"];
-    shake.duration = 0.05;
-    shake.repeatCount = 10;
+    shake.duration = 0.04;
+    shake.repeatCount = 12;
     shake.autoreverses = YES;
-    shake.fromValue = [NSValue valueWithCGPoint:CGPointMake(self.arrayView.center.x - 1, self.arrayView.center.y)];
-    shake.toValue = [NSValue valueWithCGPoint:CGPointMake(self.arrayView.center.x + 1, self.arrayView.center.y)];
+    shake.fromValue = [NSValue valueWithCGPoint:CGPointMake(self.arrayView.center.x - 4, self.arrayView.center.y)];
+    shake.toValue = [NSValue valueWithCGPoint:CGPointMake(self.arrayView.center.x + 4, self.arrayView.center.y)];
     [self.arrayView.layer addAnimation:shake forKey:@"shake"];
 }
 
 - (void)triggerAscension {
-    self.qiEmitter.birthRate = 0;
+    self.screenEdgeQiEmitter.birthRate = 0;
     [UIView animateWithDuration:1.5 animations:^{
         self.alpha = 0.0; 
     } completion:^(BOOL finished) {
@@ -215,7 +252,7 @@ int getNextRealmThreshold(int batteryLevel) {
 
 @end
 
-// --- CAN THIỆP VÀO LOCK SCREEN ---
+// --- VỊ TRÍ HIỂN THỊ TRÊN LOCK SCREEN ---
 static TMCCultivationView *cultivationView = nil;
 
 %hook CSCoverSheetViewController 
@@ -227,10 +264,14 @@ static TMCCultivationView *cultivationView = nil;
     
     if (device.batteryState == UIDeviceBatteryStateCharging || device.batteryState == UIDeviceBatteryStateFull) {
         if (!cultivationView) {
-            cultivationView = [[TMCCultivationView alloc] initWithFrame:CGRectMake(0, 0, 180, 210)];
-            cultivationView.center = self.view.center; 
-            [self.view addSubview:cultivationView];
+            CGFloat screenW = [UIScreen mainScreen].bounds.size.width;
+            CGFloat screenH = [UIScreen mainScreen].bounds.size.height;
             
+            // Khung chứa phóng to lên 280x290px
+            cultivationView = [[TMCCultivationView alloc] initWithFrame:CGRectMake(0, 0, 280, 290)];
+            cultivationView.center = CGPointMake(screenW / 2.0, screenH * 0.64); // Dời thấp xuống đẹp mắt
+            
+            [self.view addSubview:cultivationView];
             [cultivationView updateTuVi:(int)(device.batteryLevel * 100)];
         }
     }
