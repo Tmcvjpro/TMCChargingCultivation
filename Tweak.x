@@ -2,6 +2,13 @@
 #import <QuartzCore/QuartzCore.h>
 #import <Foundation/Foundation.h>
 
+// --- KHAI BÁO CLASS HỆ THỐNG ĐỂ FIX LỖI ---
+@interface CSCoverSheetViewController : UIViewController
+@end
+
+@interface SBUIController : NSObject
+@end
+
 // --- KHAI BÁO CÁC CẢNH GIỚI ---
 NSString* getRealmName(int batteryLevel) {
     if (batteryLevel <= 4) return @"PHÀM NHÂN";
@@ -31,12 +38,10 @@ int getNextRealmThreshold(int batteryLevel) {
 
 // --- GIAO DIỆN TU LUYỆN (UIView) ---
 @interface TMCCultivationView : UIView
-@property (nonatomic, strong) UIImageView *monkView;
-@property (nonatomic, strong) UIImageView *arrayView;
+@property (nonatomic, strong) UILabel *monkLabel;
+@property (nonatomic, strong) UIView *arrayView;
 @property (nonatomic, strong) UILabel *statusLabel;
 @property (nonatomic, strong) CAEmitterLayer *qiEmitter;
-@property (nonatomic, strong) CAEmitterLayer *lightningEmitter;
-
 @property (nonatomic, assign) int lastBatteryLevel;
 @property (nonatomic, strong) NSDate *lastBatteryChangeTime;
 @end
@@ -48,32 +53,28 @@ int getNextRealmThreshold(int batteryLevel) {
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         
-        // 1. Trận pháp (Xoay nhẹ nhàng)
-        self.arrayView = [[UIImageView alloc] initWithFrame:CGRectMake(20, 20, 140, 140)];
-        self.arrayView.contentMode = UIViewContentModeScaleAspectFit;
-        // Đạo hữu Tmc cần bỏ file hinh tran_phap.png vào thư mục /var/jb/Library/Application Support/TMCChargingCultivation/
-        self.arrayView.image = [UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/TMCChargingCultivation/tran_phap.png"]; 
-        self.arrayView.alpha = 0.6;
-        [self addSubview:self.arrayView];
+        // 1. Vẽ Trận pháp
+        [self setupMagicArray];
         
-        // 2. Tu sĩ đả tọa (Tĩnh)
-        self.monkView = [[UIImageView alloc] initWithFrame:CGRectMake(50, 40, 80, 80)];
-        self.monkView.contentMode = UIViewContentModeScaleAspectFit;
-        self.monkView.image = [UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/TMCChargingCultivation/tu_si.png"];
-        [self addSubview:self.monkView];
+        // 2. Tu sĩ đả tọa
+        self.monkLabel = [[UILabel alloc] initWithFrame:CGRectMake(50, 40, 80, 80)];
+        self.monkLabel.text = @"🧘🏻‍♂️";
+        self.monkLabel.font = [UIFont systemFontOfSize:55];
+        self.monkLabel.textAlignment = NSTextAlignmentCenter;
+        [self addSubview:self.monkLabel];
         
         // 3. Chữ cảnh giới & ETA
         self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 165, 180, 40)];
         self.statusLabel.numberOfLines = 2;
         self.statusLabel.textAlignment = NSTextAlignmentCenter;
-        self.statusLabel.textColor = [UIColor colorWithWhite:0.9 alpha:1.0];
+        self.statusLabel.textColor = [UIColor colorWithWhite:0.9 alpha:0.9];
         self.statusLabel.font = [UIFont systemFontOfSize:11 weight:UIFontWeightThin];
         [self addSubview:self.statusLabel];
         
-        // 4. Hệ thống hạt Linh khí (CAEmitterLayer)
+        // 4. Hệ thống hạt Linh khí bay vào
         self.qiEmitter = [CAEmitterLayer layer];
-        self.qiEmitter.emitterPosition = CGPointMake(90, 90);
-        self.qiEmitter.emitterSize = CGSizeMake(120, 120);
+        self.qiEmitter.emitterPosition = CGPointMake(90, 80);
+        self.qiEmitter.emitterSize = CGSizeMake(130, 130);
         self.qiEmitter.emitterShape = kCAEmitterLayerCircle;
         self.qiEmitter.renderMode = kCAEmitterLayerAdditive;
         [self.layer addSublayer:self.qiEmitter];
@@ -86,22 +87,55 @@ int getNextRealmThreshold(int batteryLevel) {
     return self;
 }
 
+- (void)setupMagicArray {
+    self.arrayView = [[UIView alloc] initWithFrame:CGRectMake(20, 10, 140, 140)];
+    [self addSubview:self.arrayView];
+    
+    CAShapeLayer *outerCircle = [CAShapeLayer layer];
+    outerCircle.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(5, 5, 130, 130)].CGPath;
+    outerCircle.strokeColor = [UIColor colorWithWhite:0.8 alpha:0.4].CGColor;
+    outerCircle.fillColor = [UIColor clearColor].CGColor;
+    outerCircle.lineWidth = 1.0;
+    [self.arrayView.layer addSublayer:outerCircle];
+    
+    CAShapeLayer *dashedCircle = [CAShapeLayer layer];
+    dashedCircle.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(20, 20, 100, 100)].CGPath;
+    dashedCircle.strokeColor = [UIColor colorWithWhite:0.9 alpha:0.3].CGColor;
+    dashedCircle.fillColor = [UIColor clearColor].CGColor;
+    dashedCircle.lineWidth = 1.0;
+    dashedCircle.lineDashPattern = @[@3, @5];
+    [self.arrayView.layer addSublayer:dashedCircle];
+    
+    UILabel *runeLabel = [[UILabel alloc] initWithFrame:self.arrayView.bounds];
+    runeLabel.text = @"۞"; 
+    runeLabel.font = [UIFont systemFontOfSize:90 weight:UIFontWeightUltraLight];
+    runeLabel.textColor = [UIColor colorWithWhite:0.9 alpha:0.2];
+    runeLabel.textAlignment = NSTextAlignmentCenter;
+    [self.arrayView addSubview:runeLabel];
+    
+    CABasicAnimation *rotation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+    rotation.toValue = @(M_PI * 2.0);
+    rotation.duration = 25.0; 
+    rotation.repeatCount = HUGE_VALF;
+    [self.arrayView.layer addAnimation:rotation forKey:@"rotationAnimation"];
+}
+
 - (void)setupQiParticles {
     CAEmitterCell *qiCell = [CAEmitterCell emitterCell];
-    // Dùng ký tự tròn mờ làm hạt linh khí, không cần ảnh
+    
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(4, 4), NO, 0);
-    [[UIColor colorWithRed:0.6 green:0.9 blue:1.0 alpha:0.8] setFill];
+    [[UIColor colorWithRed:0.7 green:0.9 blue:1.0 alpha:0.6] setFill];
     [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 4, 4)] fill];
     UIImage *particleImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
     qiCell.contents = (id)particleImage.CGImage;
-    qiCell.birthRate = 8.0; 
-    qiCell.lifetime = 3.0;
-    qiCell.velocity = -20.0; // Bay ngược về tâm (tu sĩ)
-    qiCell.alphaSpeed = -0.3; // Mờ dần khi tới gần
+    qiCell.birthRate = 6.0; 
+    qiCell.lifetime = 4.0;
+    qiCell.velocity = -15.0; 
+    qiCell.alphaSpeed = -0.2; 
     qiCell.scale = 0.5;
-    qiCell.scaleRange = 0.3;
+    qiCell.scaleRange = 0.2;
     
     self.qiEmitter.emitterCells = @[qiCell];
 }
@@ -113,19 +147,16 @@ int getNextRealmThreshold(int batteryLevel) {
     
     NSString *currentRealm = getRealmName(currentBattery);
     
-    // Xử lý Phi Thăng (100%)
     if (currentBattery == 100) {
         self.statusLabel.text = @"PHI THĂNG";
         [self triggerAscension];
         return;
     }
     
-    // Xử lý đột phá cảnh giới (Pin tăng và qua ngưỡng)
     if (currentBattery > self.lastBatteryLevel && ![currentRealm isEqualToString:getRealmName(self.lastBatteryLevel)]) {
         [self triggerBreakthrough];
     }
     
-    // Tính toán ETA
     int nextThreshold = getNextRealmThreshold(currentBattery);
     NSString *nextRealm = getRealmName(nextThreshold);
     
@@ -143,31 +174,27 @@ int getNextRealmThreshold(int batteryLevel) {
         self.lastBatteryChangeTime = [NSDate date];
         self.lastBatteryLevel = currentBattery;
     } else {
-        // Lần đầu cắm sạc, chưa có data để tính ETA
         self.statusLabel.text = [NSString stringWithFormat:@"%@\nĐang hấp thu linh khí...", currentRealm];
     }
     
-    // Xử lý Độ Kiếp (95 - 99%)
     if (currentBattery >= 95 && currentBattery < 100) {
         [self enableTribulationMode];
     }
 }
 
 - (void)triggerBreakthrough {
-    // Xung năng lượng nhẹ (tỏa sáng trận pháp)
     [UIView animateWithDuration:0.5 animations:^{
         self.arrayView.alpha = 1.0;
-        self.arrayView.transform = CGAffineTransformMakeScale(1.1, 1.1);
+        self.arrayView.transform = CGAffineTransformMakeScale(1.15, 1.15);
     } completion:^(BOOL finished) {
-        [UIView animateWithDuration:1.5 animations:^{
-            self.arrayView.alpha = 0.6;
+        [UIView animateWithDuration:2.0 animations:^{
+            self.arrayView.alpha = 1.0;
             self.arrayView.transform = CGAffineTransformIdentity;
         }];
     }];
 }
 
 - (void)enableTribulationMode {
-    // Thêm hiệu ứng rung nhẹ và tia chớp (Độ Kiếp)
     CABasicAnimation *shake = [CABasicAnimation animationWithKeyPath:@"position"];
     shake.duration = 0.05;
     shake.repeatCount = 10;
@@ -178,39 +205,32 @@ int getNextRealmThreshold(int batteryLevel) {
 }
 
 - (void)triggerAscension {
-    // Linh khí bùng nổ nhẹ rồi biến mất
-    self.qiEmitter.birthRate = 0; // Ngừng linh khí
-    [UIView animateWithDuration:1.0 animations:^{
-        self.alpha = 0.0; // Tan biến
+    self.qiEmitter.birthRate = 0;
+    [UIView animateWithDuration:1.5 animations:^{
+        self.alpha = 0.0; 
     } completion:^(BOOL finished) {
-        [self removeFromSuperview]; // Xóa hoàn toàn khỏi Lock Screen
+        [self removeFromSuperview];
     }];
 }
 
 @end
 
-
-// --- CAN THIỆP VÀO LOCK SCREEN CỦA IOS ---
-
+// --- CAN THIỆP VÀO LOCK SCREEN ---
 static TMCCultivationView *cultivationView = nil;
 
-%hook CSCoverSheetViewController // Đây là class quản lý Lock Screen trên iOS 16
+%hook CSCoverSheetViewController 
 
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
-    
     UIDevice *device = [UIDevice currentDevice];
     device.batteryMonitoringEnabled = YES;
     
-    // Nếu đang cắm sạc
     if (device.batteryState == UIDeviceBatteryStateCharging || device.batteryState == UIDeviceBatteryStateFull) {
         if (!cultivationView) {
-            // Khởi tạo view kích thước 180x200, đặt giữa màn hình
-            cultivationView = [[TMCCultivationView alloc] initWithFrame:CGRectMake(0, 0, 180, 200)];
+            cultivationView = [[TMCCultivationView alloc] initWithFrame:CGRectMake(0, 0, 180, 210)];
             cultivationView.center = self.view.center; 
             [self.view addSubview:cultivationView];
             
-            // Cập nhật tu vi ngay lập tức
             [cultivationView updateTuVi:(int)(device.batteryLevel * 100)];
         }
     }
@@ -218,7 +238,6 @@ static TMCCultivationView *cultivationView = nil;
 
 - (void)viewDidDisappear:(BOOL)animated {
     %orig;
-    // Khi người dùng mở khóa máy -> Hủy tu luyện
     if (cultivationView) {
         [cultivationView removeFromSuperview];
         cultivationView = nil;
@@ -227,19 +246,15 @@ static TMCCultivationView *cultivationView = nil;
 
 %end
 
-
-// Lắng nghe sự kiện cắm/rút sạc theo thời gian thực ngay trên LockScreen
 %hook SBUIController 
 
 - (void)updateBatteryState:(id)arg1 {
     %orig;
-    
     UIDevice *device = [UIDevice currentDevice];
     device.batteryMonitoringEnabled = YES;
     
     if (cultivationView) {
         if (device.batteryState == UIDeviceBatteryStateUnplugged) {
-            // Rút sạc -> Tu luyện kết thúc, view biến mất
             [UIView animateWithDuration:0.5 animations:^{
                 cultivationView.alpha = 0;
             } completion:^(BOOL finished) {
@@ -247,7 +262,6 @@ static TMCCultivationView *cultivationView = nil;
                 cultivationView = nil;
             }];
         } else {
-            // Đang sạc -> Cập nhật % pin liên tục
             [cultivationView updateTuVi:(int)(device.batteryLevel * 100)];
         }
     }
