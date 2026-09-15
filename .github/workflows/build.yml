@@ -1,0 +1,28 @@
+name: Build Roothide Tweak
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Theos
+        run: |
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+
+      - name: Build Package (Roothide)
+        run: |
+          make package THEOS_PACKAGE_SCHEME=roothide FINALPACKAGE=1
+        env:
+          THEOS: /Users/runner/theos
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TMCChargingCultivation-Roothide
+          path: packages/*.deb
