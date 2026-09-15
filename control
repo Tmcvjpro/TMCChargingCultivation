@@ -1,0 +1,9 @@
+Package: com.tmc.chargingcultivation
+Name: TMC Charging Cultivation
+Depends: mobilesubstrate
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Biến quá trình sạc pin thành quá trình tu luyện tiên hiệp.
+Maintainer: Tmc
+Author: Tmc
+Section: Tweaks
