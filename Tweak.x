@@ -52,10 +52,10 @@ int getNextRealmThreshold(int batteryLevel) {
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         
-        // 1. Trận pháp tiên hiệp (Đã phóng to rộng 280px)
+        // 1. Trận pháp tiên hiệp phóng to 280x280px
         [self setupXianXiaArray];
         
-        // 2. Nhân vật Tu sĩ (Phóng to kích thước 130x130px, nằm chính giữa)
+        // 2. Nhân vật Tu sĩ 130x130px chính giữa
         self.monkImageView = [[UIImageView alloc] initWithFrame:CGRectMake(75, 65, 130, 130)];
         self.monkImageView.contentMode = UIViewContentModeScaleAspectFit;
         UIImage *tuSiImg = [UIImage imageWithContentsOfFile:@"/var/jb/tu_si.png"];
@@ -70,7 +70,7 @@ int getNextRealmThreshold(int batteryLevel) {
         }
         [self addSubview:self.monkImageView];
         
-        // 3. Chữ cảnh giới & ETA (Dời xuống thấp hơn chút để không che nhân vật)
+        // 3. Chữ cảnh giới & ETA rõ nét
         self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(-20, 225, 320, 50)];
         self.statusLabel.numberOfLines = 2;
         self.statusLabel.textAlignment = NSTextAlignmentCenter;
@@ -82,7 +82,7 @@ int getNextRealmThreshold(int batteryLevel) {
         self.statusLabel.layer.shadowOffset = CGSizeZero;
         [self addSubview:self.statusLabel];
         
-        // 4. Linh khí từ viền bay vào
+        // 4. Linh khí từ viền bay vào (Đã sửa lỗi không dùng keyWindow)
         [self setupEdgeQiEmitter];
         
         self.lastBatteryLevel = -1;
@@ -92,13 +92,11 @@ int getNextRealmThreshold(int batteryLevel) {
 }
 
 - (void)setupXianXiaArray {
-    // Phóng to khung trận pháp lên 280x280px
     self.arrayView = [[UIView alloc] initWithFrame:CGRectMake(-20, -25, 280, 280)];
     [self addSubview:self.arrayView];
     
     UIColor *arrayColor = [UIColor colorWithRed:0.1 green:0.95 blue:1.0 alpha:1.0];
     
-    // Vòng ngoài cùng
     CAShapeLayer *outerRing = [CAShapeLayer layer];
     outerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(10, 10, 260, 260)].CGPath;
     outerRing.strokeColor = arrayColor.CGColor;
@@ -110,7 +108,6 @@ int getNextRealmThreshold(int batteryLevel) {
     outerRing.shadowOffset = CGSizeZero;
     [self.arrayView.layer addSublayer:outerRing];
     
-    // Vòng trung tâm đứt khúc
     CAShapeLayer *midRing = [CAShapeLayer layer];
     midRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(40, 40, 200, 200)].CGPath;
     midRing.strokeColor = arrayColor.CGColor;
@@ -123,7 +120,6 @@ int getNextRealmThreshold(int batteryLevel) {
     midRing.shadowOffset = CGSizeZero;
     [self.arrayView.layer addSublayer:midRing];
     
-    // Vòng tụ linh trong
     CAShapeLayer *innerRing = [CAShapeLayer layer];
     innerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(70, 70, 140, 140)].CGPath;
     innerRing.strokeColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:0.9].CGColor;
@@ -131,7 +127,6 @@ int getNextRealmThreshold(int batteryLevel) {
     innerRing.lineWidth = 1.2;
     [self.arrayView.layer addSublayer:innerRing];
     
-    // Ký tự tâm trận
     UILabel *rune = [[UILabel alloc] initWithFrame:self.arrayView.bounds];
     rune.text = @"☸"; 
     rune.font = [UIFont systemFontOfSize:150 weight:UIFontWeightUltraLight];
@@ -139,7 +134,6 @@ int getNextRealmThreshold(int batteryLevel) {
     rune.textAlignment = NSTextAlignmentCenter;
     [self.arrayView addSubview:rune];
     
-    // Hoạt ảnh xoay
     CABasicAnimation *spin = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
     spin.toValue = @(M_PI * 2.0);
     spin.duration = 20.0;
@@ -150,9 +144,10 @@ int getNextRealmThreshold(int batteryLevel) {
 - (void)setupEdgeQiEmitter {
     self.screenEdgeQiEmitter = [CAEmitterLayer layer];
     
-    UIWindow *window = [UIApplication sharedApplication].keyWindow;
-    CGFloat screenW = window.bounds.size.width > 0 ? window.bounds.size.width : 390;
-    CGFloat screenH = window.bounds.size.height > 0 ? window.bounds.size.height : 844;
+    // Lấy kích thước màn hình an toàn không dùng keyWindow
+    CGRect screenBounds = [UIScreen mainScreen].bounds;
+    CGFloat screenW = screenBounds.size.width > 0 ? screenBounds.size.width : 390;
+    CGFloat screenH = screenBounds.size.height > 0 ? screenBounds.size.height : 844;
     
     self.screenEdgeQiEmitter.emitterPosition = CGPointMake(screenW / 2.0, screenH / 2.0);
     self.screenEdgeQiEmitter.emitterSize = CGSizeMake(screenW - 20, screenH - 20);
@@ -160,16 +155,16 @@ int getNextRealmThreshold(int batteryLevel) {
     self.screenEdgeQiEmitter.renderMode = kCAEmitterLayerAdditive;
     
     CAEmitterCell *edgeCell = [CAEmitterCell emitterCell];
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(10, 10), NO, 0); // Tăng kích thước hạt linh khí to rõ hơn
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(10, 10), NO, 0);
     [[UIColor colorWithRed:0.2 green:1.0 blue:1.0 alpha:1.0] setFill];
     [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 10, 10)] fill];
     UIImage *qiDot = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
     edgeCell.contents = (id)qiDot.CGImage;
-    edgeCell.birthRate = 55.0;  // Tăng lượng hạt dày đặc
+    edgeCell.birthRate = 55.0;
     edgeCell.lifetime = 2.2;
-    edgeCell.velocity = -200.0; // Bắn mạnh từ viền vào
+    edgeCell.velocity = -200.0;
     edgeCell.velocityRange = 50.0;
     edgeCell.alphaSpeed = -0.25;
     edgeCell.scale = 0.9;
@@ -264,12 +259,12 @@ static TMCCultivationView *cultivationView = nil;
     
     if (device.batteryState == UIDeviceBatteryStateCharging || device.batteryState == UIDeviceBatteryStateFull) {
         if (!cultivationView) {
-            CGFloat screenW = [UIScreen mainScreen].bounds.size.width;
-            CGFloat screenH = [UIScreen mainScreen].bounds.size.height;
+            CGRect screenBounds = [UIScreen mainScreen].bounds;
+            CGFloat screenW = screenBounds.size.width;
+            CGFloat screenH = screenBounds.size.height;
             
-            // Khung chứa phóng to lên 280x290px
             cultivationView = [[TMCCultivationView alloc] initWithFrame:CGRectMake(0, 0, 280, 290)];
-            cultivationView.center = CGPointMake(screenW / 2.0, screenH * 0.64); // Dời thấp xuống đẹp mắt
+            cultivationView.center = CGPointMake(screenW / 2.0, screenH * 0.64);
             
             [self.view addSubview:cultivationView];
             [cultivationView updateTuVi:(int)(device.batteryLevel * 100)];
