@@ -81,14 +81,13 @@ CultivationStatus getCultivationStatus(int battery) {
     return status;
 }
 
-// --- GIAO DIỆN TU LUYỆN ĐÃ TỐI ƯU CÂN ĐỐI ---
+// --- GIAO DIỆN TU LUYỆN ĐÃ THU NHỎ VÀ CÂN ĐỐI ---
 @interface TMCCultivationView : UIView
 @property (nonatomic, strong) UIImageView *monkImageView;
 @property (nonatomic, strong) UIView *arrayView;
 @property (nonatomic, strong) UILabel *statusLabel;
 @property (nonatomic, strong) CAEmitterLayer *screenEdgeQiEmitter;
 @property (nonatomic, assign) int lastBatteryLevel;
-@property (nonatomic, strong) NSDate *lastBatteryChangeTime;
 @end
 
 @implementation TMCCultivationView
@@ -98,17 +97,16 @@ CultivationStatus getCultivationStatus(int battery) {
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         
-        // Kích thước chuẩn gọn gàng, không bị to thô
         CGFloat centerX = frame.size.width / 2.0;
-        CGFloat centerY = frame.size.height / 2.0 - 20;
+        CGFloat centerY = frame.size.height / 2.0 - 15;
         
-        // 1. Trận pháp đặt chuẩn tâm tuyệt đối (Kích thước 200x200px)
-        self.arrayView = [[UIView alloc] initWithFrame:CGRectMake(centerX - 100, centerY - 100, 200, 200)];
+        // 1. Trận pháp gọn gàng cân đối (Kích thước 170x170px)
+        self.arrayView = [[UIView alloc] initWithFrame:CGRectMake(centerX - 85, centerY - 85, 170, 170)];
         [self addSubview:self.arrayView];
         [self setupPerfectArray];
         
-        // 2. Nhân vật Tu sĩ đặt chuẩn tâm tuyệt đối (Kích thước 90x90px)
-        self.monkImageView = [[UIImageView alloc] initWithFrame:CGRectMake(centerX - 45, centerY - 45, 90, 90)];
+        // 2. Nhân vật Tu sĩ chuẩn tâm tuyệt đối (Kích thước 75x75px - Thu nhỏ vừa vặn)
+        self.monkImageView = [[UIImageView alloc] initWithFrame:CGRectMake(centerX - 37.5, centerY - 37.5, 75, 75)];
         self.monkImageView.contentMode = UIViewContentModeScaleAspectFit;
         UIImage *tuSiImg = [UIImage imageWithContentsOfFile:@"/var/jb/tu_si.png"];
         if (tuSiImg) {
@@ -116,25 +114,25 @@ CultivationStatus getCultivationStatus(int battery) {
         } else {
             UILabel *fallback = [[UILabel alloc] initWithFrame:self.monkImageView.bounds];
             fallback.text = @"🧘🏻‍♂️";
-            fallback.font = [UIFont systemFontOfSize:55];
+            fallback.font = [UIFont systemFontOfSize:45];
             fallback.textAlignment = NSTextAlignmentCenter;
             [self.monkImageView addSubview:fallback];
         }
         [self addSubview:self.monkImageView];
         
-        // 3. Chữ cảnh giới & tiểu cảnh giới sắc nét nằm ngay bên dưới
-        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 125, centerY + 105, 250, 45)];
+        // 3. Chữ cảnh giới sắc nét nằm ngay dưới
+        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 110, centerY + 92, 220, 45)];
         self.statusLabel.numberOfLines = 2;
         self.statusLabel.textAlignment = NSTextAlignmentCenter;
         self.statusLabel.textColor = [UIColor whiteColor];
-        self.statusLabel.font = [UIColor.boldSystemFontOfSize:13];
+        self.statusLabel.font = [UIFont boldSystemFontOfSize:12]; // Đã fix lỗi cú pháp font
         self.statusLabel.layer.shadowColor = [UIColor colorWithRed:0.0 green:0.8 blue:1.0 alpha:1.0].CGColor;
-        self.statusLabel.layer.shadowRadius = 6.0;
+        self.statusLabel.layer.shadowRadius = 5.0;
         self.statusLabel.layer.shadowOpacity = 1.0;
         self.statusLabel.layer.shadowOffset = CGSizeZero;
         [self addSubview:self.statusLabel];
         
-        // 4. Linh khí từ viền màn hình hội tụ trực tiếp vào người nhân vật
+        // 4. Linh khí từ viền hội tụ thẳng vào nhân vật
         [self setupFocusedQiEmitter:CGPointMake(centerX, centerY)];
     }
     return self;
@@ -143,38 +141,34 @@ CultivationStatus getCultivationStatus(int battery) {
 - (void)setupPerfectArray {
     UIColor *arrayColor = [UIColor colorWithRed:0.1 green:0.95 blue:1.0 alpha:1.0];
     
-    // Vòng trận pháp ngoài
     CAShapeLayer *outerRing = [CAShapeLayer layer];
-    outerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(10, 10, 180, 180)].CGPath;
+    outerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(5, 5, 160, 160)].CGPath;
     outerRing.strokeColor = arrayColor.CGColor;
     outerRing.fillColor = [UIColor clearColor].CGColor;
-    outerRing.lineWidth = 1.8;
+    outerRing.lineWidth = 1.5;
     outerRing.shadowColor = arrayColor.CGColor;
-    outerRing.shadowRadius = 8.0;
+    outerRing.shadowRadius = 6.0;
     outerRing.shadowOpacity = 0.8;
     [self.arrayView.layer addSublayer:outerRing];
     
-    // Vòng bát quái đứt khúc bên trong
     CAShapeLayer *midRing = [CAShapeLayer layer];
-    midRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(30, 30, 140, 140)].CGPath;
+    midRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(25, 25, 120, 120)].CGPath;
     midRing.strokeColor = arrayColor.CGColor;
     midRing.fillColor = [UIColor clearColor].CGColor;
-    midRing.lineWidth = 1.5;
-    midRing.lineDashPattern = @[@8, @6, @3, @6];
+    midRing.lineWidth = 1.2;
+    midRing.lineDashPattern = @[@7, @5, @3, @5];
     [self.arrayView.layer addSublayer:midRing];
     
-    // Ký tự cổ trận trung tâm
     UILabel *rune = [[UILabel alloc] initWithFrame:self.arrayView.bounds];
     rune.text = @"☸"; 
-    rune.font = [UIFont systemFontOfSize:110 weight:UIFontWeightUltraLight];
+    rune.font = [UIFont systemFontOfSize:95 weight:UIFontWeightUltraLight];
     rune.textColor = [arrayColor colorWithAlphaComponent:0.25];
     rune.textAlignment = NSTextAlignmentCenter;
     [self.arrayView addSubview:rune];
     
-    // Hoạt ảnh xoay
     CABasicAnimation *spin = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
     spin.toValue = @(M_PI * 2.0);
-    spin.duration = 22.0;
+    spin.duration = 24.0;
     spin.repeatCount = HUGE_VALF;
     [self.arrayView.layer addAnimation:spin forKey:@"spinAnimation"];
 }
@@ -186,26 +180,25 @@ CultivationStatus getCultivationStatus(int battery) {
     CGFloat screenW = screenBounds.size.width > 0 ? screenBounds.size.width : 390;
     CGFloat screenH = screenBounds.size.height > 0 ? screenBounds.size.height : 844;
     
-    // Thiết lập nguồn linh khí từ viền màn hình hướng đúng tâm nhân vật
     self.screenEdgeQiEmitter.emitterPosition = targetCenter;
-    self.screenEdgeQiEmitter.emitterSize = CGSizeMake(screenW - 30, screenH - 30);
+    self.screenEdgeQiEmitter.emitterSize = CGSizeMake(screenW - 20, screenH - 20);
     self.screenEdgeQiEmitter.emitterShape = kCAEmitterLayerRectangle;
     self.screenEdgeQiEmitter.renderMode = kCAEmitterLayerAdditive;
     
     CAEmitterCell *edgeCell = [CAEmitterCell emitterCell];
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(7, 7), NO, 0);
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(6, 6), NO, 0);
     [[UIColor colorWithRed:0.2 green:1.0 blue:1.0 alpha:1.0] setFill];
-    [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 7, 7)] fill];
+    [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 6, 6)] fill];
     UIImage *qiDot = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
     edgeCell.contents = (id)qiDot.CGImage;
-    edgeCell.birthRate = 40.0;
-    edgeCell.lifetime = 2.0;
-    edgeCell.velocity = -170.0; // Hút thẳng vào tâm
-    edgeCell.velocityRange = 30.0;
-    edgeCell.alphaSpeed = -0.3;
-    edgeCell.scale = 0.8;
+    edgeCell.birthRate = 45.0;
+    edgeCell.lifetime = 1.8;
+    edgeCell.velocity = -190.0;
+    edgeCell.velocityRange = 25.0;
+    edgeCell.alphaSpeed = -0.35;
+    edgeCell.scale = 0.7;
     
     self.screenEdgeQiEmitter.emitterCells = @[edgeCell];
     [self.layer addSublayer:self.screenEdgeQiEmitter];
@@ -224,9 +217,8 @@ CultivationStatus getCultivationStatus(int battery) {
         return;
     }
     
-    // Phát hiện đột phá khi % pin thay đổi
     if (currentBattery > self.lastBatteryLevel) {
-        [self triggerBreakthroughEffect:currentBattery];
+        [self triggerBreakthroughEffect];
     }
     
     if (status.subRealm.length > 0) {
@@ -238,12 +230,11 @@ CultivationStatus getCultivationStatus(int battery) {
     self.lastBatteryLevel = currentBattery;
 }
 
-- (void)triggerBreakthroughEffect:(int)battery {
-    // Hiệu ứng linh khí tụ mạnh & trận pháp sáng lên khi đột phá
-    [UIView animateWithDuration:0.4 animations:^{
-        self.arrayView.transform = CGAffineTransformMakeScale(1.15, 1.15);
+- (void)triggerBreakthroughEffect {
+    [UIView animateWithDuration:0.3 animations:^{
+        self.arrayView.transform = CGAffineTransformMakeScale(1.12, 1.12);
     } completion:^(BOOL finished) {
-        [UIView animateWithDuration:1.2 animations:^{
+        [UIView animateWithDuration:1.0 animations:^{
             self.arrayView.transform = CGAffineTransformIdentity;
         }];
     }];
@@ -251,7 +242,7 @@ CultivationStatus getCultivationStatus(int battery) {
 
 - (void)triggerAscension {
     self.screenEdgeQiEmitter.birthRate = 0;
-    [UIView animateWithDuration:1.5 animations:^{
+    [UIView animateWithDuration:1.2 animations:^{
         self.alpha = 0.0;
     } completion:^(BOOL finished) {
         [self removeFromSuperview];
@@ -260,7 +251,6 @@ CultivationStatus getCultivationStatus(int battery) {
 
 @end
 
-// --- HIỂN THỊ CHÍNH XÁC TRÊN LOCK SCREEN ---
 static TMCCultivationView *cultivationView = nil;
 
 %hook CSCoverSheetViewController 
@@ -273,7 +263,6 @@ static TMCCultivationView *cultivationView = nil;
     if (device.batteryState == UIDeviceBatteryStateCharging || device.batteryState == UIDeviceBatteryStateFull) {
         if (!cultivationView) {
             CGRect screenBounds = [UIScreen mainScreen].bounds;
-            // Khung vừa vặn, không bị to thô, đặt ở nửa dưới màn hình
             cultivationView = [[TMCCultivationView alloc] initWithFrame:screenBounds];
             
             [self.view addSubview:cultivationView];
@@ -301,7 +290,7 @@ static TMCCultivationView *cultivationView = nil;
     
     if (cultivationView) {
         if (device.batteryState == UIDeviceBatteryStateUnplugged) {
-            [UIView animateWithDuration:0.5 animations:^{
+            [UIView animateWithDuration:0.4 animations:^{
                 cultivationView.alpha = 0;
             } completion:^(BOOL finished) {
                 [cultivationView removeFromSuperview];
