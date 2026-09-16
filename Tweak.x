@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 #import <Foundation/Foundation.h>
+#import <math.h>
 
 @interface CSCoverSheetViewController : UIViewController
 @end
@@ -8,100 +9,42 @@
 @interface SBUIController : NSObject
 @end
 
-// --- HỆ THỐNG CẢNH GIỚI ĐỘC TÔN ---
+// --- HỆ THỐNG CẢNH GIỚI ---
 typedef struct {
-    int majorLevel; // Dùng để xác định hiệu ứng đột phá lớn
+    int majorLevel;
     NSString *realmName;
     NSString *subRealm;
 } CultivationStatus;
 
 CultivationStatus getCultivationStatus(int battery) {
     CultivationStatus status;
-    
-    if (battery < 10) {
-        status.majorLevel = 0; status.realmName = @"CHƯA NHẬP ĐẠO"; status.subRealm = @"";
-    } 
-    else if (battery <= 12) {
-        status.majorLevel = 1; status.realmName = @"PHÀM NHÂN";
-        if (battery == 10) status.subRealm = @"Sơ Kỳ";
-        else if (battery == 11) status.subRealm = @"Trung Kỳ";
-        else status.subRealm = @"Hậu Kỳ";
-    } 
-    else if (battery <= 15) {
-        status.majorLevel = 2; status.realmName = @"LUYỆN KHÍ";
-        if (battery == 13) status.subRealm = @"Sơ Kỳ";
-        else if (battery == 14) status.subRealm = @"Trung Kỳ";
-        else status.subRealm = @"Hậu Kỳ";
-    } 
-    else if (battery <= 20) {
-        status.majorLevel = 3; status.realmName = @"TRÚC CƠ";
-        if (battery == 16) status.subRealm = @"Sơ Kỳ";
-        else if (battery == 17) status.subRealm = @"Trung Kỳ";
-        else if (battery <= 19) status.subRealm = @"Hậu Kỳ";
-        else status.subRealm = @"Đỉnh Phong";
-    } 
-    else if (battery <= 27) {
-        status.majorLevel = 4; status.realmName = @"KIM ĐAN";
-        if (battery <= 22) status.subRealm = @"Sơ Kỳ";
-        else if (battery <= 24) status.subRealm = @"Trung Kỳ";
-        else if (battery <= 26) status.subRealm = @"Hậu Kỳ";
-        else status.subRealm = @"Đỉnh Phong";
-    } 
-    else if (battery <= 36) {
-        status.majorLevel = 5; status.realmName = @"NGUYÊN ANH";
-        if (battery <= 29) status.subRealm = @"Sơ Kỳ";
-        else if (battery <= 32) status.subRealm = @"Trung Kỳ";
-        else if (battery <= 35) status.subRealm = @"Hậu Kỳ";
-        else status.subRealm = @"Đỉnh Phong";
-    } 
-    else if (battery <= 48) {
-        status.majorLevel = 6; status.realmName = @"HÓA THẦN";
-        if (battery <= 39) status.subRealm = @"Sơ Kỳ";
-        else if (battery <= 42) status.subRealm = @"Trung Kỳ";
-        else if (battery <= 45) status.subRealm = @"Hậu Kỳ";
-        else status.subRealm = @"Đỉnh Phong";
-    } 
-    else if (battery <= 62) {
-        status.majorLevel = 7; status.realmName = @"LUYỆN HƯ";
-        if (battery <= 52) status.subRealm = @"Sơ Kỳ";
-        else if (battery <= 56) status.subRealm = @"Trung Kỳ";
-        else if (battery <= 59) status.subRealm = @"Hậu Kỳ";
-        else status.subRealm = @"Đỉnh Phong";
-    } 
-    else if (battery <= 79) {
-        status.majorLevel = 8; status.realmName = @"ĐẠI THỪA";
-        if (battery <= 66) status.subRealm = @"Sơ Kỳ";
-        else if (battery <= 71) status.subRealm = @"Trung Kỳ";
-        else if (battery <= 75) status.subRealm = @"Hậu Kỳ";
-        else status.subRealm = @"Đỉnh Phong";
-    } 
-    else if (battery <= 94) {
-        status.majorLevel = 9; status.realmName = @"ĐỘ KIẾP";
-        if (battery <= 83) status.subRealm = @"Sơ Kỳ";
-        else if (battery <= 87) status.subRealm = @"Trung Kỳ";
-        else if (battery <= 91) status.subRealm = @"Hậu Kỳ";
-        else status.subRealm = @"Đỉnh Phong";
-    } 
-    else if (battery <= 99) {
-        status.majorLevel = 10; status.realmName = @"ĐỘ KIẾP · THIÊN KIẾP";
-        status.subRealm = @"Thiên Lôi Giáng Lâm";
-    } 
-    else {
-        status.majorLevel = 11; status.realmName = @"PHI THĂNG";
-        status.subRealm = @"Đại Đạo Viên Mãn";
-    }
+    if (battery < 10) { status.majorLevel = 0; status.realmName = @"CHƯA NHẬP ĐẠO"; status.subRealm = @""; }
+    else if (battery <= 12) { status.majorLevel = 1; status.realmName = @"PHÀM NHÂN"; status.subRealm = (battery == 10) ? @"Sơ Kỳ" : (battery == 11) ? @"Trung Kỳ" : @"Hậu Kỳ"; }
+    else if (battery <= 15) { status.majorLevel = 2; status.realmName = @"LUYỆN KHÍ"; status.subRealm = (battery == 13) ? @"Sơ Kỳ" : (battery == 14) ? @"Trung Kỳ" : @"Hậu Kỳ"; }
+    else if (battery <= 20) { status.majorLevel = 3; status.realmName = @"TRÚC CƠ"; status.subRealm = (battery == 16) ? @"Sơ Kỳ" : (battery == 17) ? @"Trung Kỳ" : (battery <= 19) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 27) { status.majorLevel = 4; status.realmName = @"KIM ĐAN"; status.subRealm = (battery <= 22) ? @"Sơ Kỳ" : (battery <= 24) ? @"Trung Kỳ" : (battery <= 26) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 36) { status.majorLevel = 5; status.realmName = @"NGUYÊN ANH"; status.subRealm = (battery <= 29) ? @"Sơ Kỳ" : (battery <= 32) ? @"Trung Kỳ" : (battery <= 35) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 48) { status.majorLevel = 6; status.realmName = @"HÓA THẦN"; status.subRealm = (battery <= 39) ? @"Sơ Kỳ" : (battery <= 42) ? @"Trung Kỳ" : (battery <= 47) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 62) { status.majorLevel = 7; status.realmName = @"LUYỆN HƯ"; status.subRealm = (battery <= 52) ? @"Sơ Kỳ" : (battery <= 56) ? @"Trung Kỳ" : (battery <= 61) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 79) { status.majorLevel = 8; status.realmName = @"ĐẠI THỪA"; status.subRealm = (battery <= 66) ? @"Sơ Kỳ" : (battery <= 71) ? @"Trung Kỳ" : (battery <= 75) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 94) { status.majorLevel = 9; status.realmName = @"ĐỘ KIẾP"; status.subRealm = (battery <= 83) ? @"Sơ Kỳ" : (battery <= 87) ? @"Trung Kỳ" : (battery <= 91) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 99) { status.majorLevel = 10; status.realmName = @"ĐỘ KIẾP · THIÊN KIẾP"; status.subRealm = @"Thiên Lôi Giáng Lâm"; }
+    else { status.majorLevel = 11; status.realmName = @"PHI THĂNG"; status.subRealm = @"Đại Đạo Viên Mãn"; }
     return status;
 }
 
-// --- GIAO DIỆN TU LUYỆN ĐỈNH CAO ---
+// --- GIAO DIỆN TU LUYỆN (CODE DRAW 100%) ---
 @interface TMCCultivationView : UIView
+@property (nonatomic, strong) UIView *arrayContainer;
 @property (nonatomic, strong) UIImageView *monkImageView;
-@property (nonatomic, strong) UIImageView *arrayImageView;
 @property (nonatomic, strong) UILabel *statusLabel;
-@property (nonatomic, strong) CAEmitterLayer *screenEdgeQiEmitter;
-@property (nonatomic, strong) UIView *flashView; // Dùng cho hiệu ứng lóa sáng
+@property (nonatomic, strong) UILabel *fallbackMonk;
+@property (nonatomic, strong) CAEmitterLayer *qiEmitter;
+@property (nonatomic, strong) UIView *flashView; // Sấm sét
+@property (nonatomic, strong) CAShapeLayer *outerRing;
+@property (nonatomic, strong) CAShapeLayer *innerRing;
+@property (nonatomic, strong) NSMutableArray *baguaLabels;
 @property (nonatomic, assign) int lastBatteryLevel;
-@property (nonatomic, assign) BOOL isBreakingThrough;
 @end
 
 @implementation TMCCultivationView
@@ -110,216 +53,264 @@ CultivationStatus getCultivationStatus(int battery) {
     self = [super initWithFrame:frame];
     if (self) {
         self.backgroundColor = [UIColor clearColor];
-        self.isBreakingThrough = NO;
-        
         CGFloat centerX = frame.size.width / 2.0;
-        CGFloat centerY = frame.size.height / 2.0 - 15;
+        CGFloat centerY = frame.size.height / 2.0 - 20;
         
-        // Flash View ẩn (Dùng cho chớp sáng lôi kiếp/đột phá)
+        // 1. Flash View (Dành riêng cho Thiên Lôi)
         self.flashView = [[UIView alloc] initWithFrame:frame];
         self.flashView.backgroundColor = [UIColor whiteColor];
         self.flashView.alpha = 0.0;
         [self addSubview:self.flashView];
         
-        // 1. Trận pháp
-        self.arrayImageView = [[UIImageView alloc] initWithFrame:CGRectMake(centerX - 90, centerY - 90, 180, 180)];
-        self.arrayImageView.contentMode = UIViewContentModeScaleAspectFit;
-        UIImage *tranPhapImg = [UIImage imageWithContentsOfFile:@"/var/jb/tran_phap.png"];
-        if (tranPhapImg) self.arrayImageView.image = tranPhapImg;
-        [self addSubview:self.arrayImageView];
-        [self startNormalArraySpin];
+        // 2. Trận Pháp Vẽ Bằng Code (Không cần ảnh png)
+        self.arrayContainer = [[UIView alloc] initWithFrame:CGRectMake(centerX - 95, centerY - 95, 190, 190)];
+        [self addSubview:self.arrayContainer];
+        [self drawBaguaMagicArray];
         
-        // 2. Tu sĩ
+        // 3. Nhân vật Tu sĩ (Đã có phương án dự phòng cực xịn nếu không có ảnh)
         self.monkImageView = [[UIImageView alloc] initWithFrame:CGRectMake(centerX - 40, centerY - 40, 80, 80)];
         self.monkImageView.contentMode = UIViewContentModeScaleAspectFit;
+        
+        // Đọc ảnh Tusi (Nếu đạo hữu tải ảnh chép vào var/jb/)
         UIImage *tuSiImg = [UIImage imageWithContentsOfFile:@"/var/jb/tu_si.png"];
-        if (tuSiImg) self.monkImageView.image = tuSiImg;
+        if (tuSiImg) {
+            self.monkImageView.image = tuSiImg;
+        } else {
+            // Nếu không có ảnh, hiện ngay ông sư đang thiền cực chất
+            self.fallbackMonk = [[UILabel alloc] initWithFrame:self.monkImageView.bounds];
+            self.fallbackMonk.text = @"🧘🏻‍♂️";
+            self.fallbackMonk.font = [UIFont systemFontOfSize:55];
+            self.fallbackMonk.textAlignment = NSTextAlignmentCenter;
+            
+            // Hào quang tỏa ra quanh người tu sĩ
+            self.fallbackMonk.layer.shadowColor = [UIColor cyanColor].CGColor;
+            self.fallbackMonk.layer.shadowRadius = 15.0;
+            self.fallbackMonk.layer.shadowOpacity = 1.0;
+            self.fallbackMonk.layer.shadowOffset = CGSizeZero;
+            [self.monkImageView addSubview:self.fallbackMonk];
+        }
         [self addSubview:self.monkImageView];
         
-        // 3. Chữ cảnh giới
-        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 120, centerY + 95, 240, 45)];
+        // 4. Chữ Cảnh Giới
+        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 130, centerY + 105, 260, 45)];
         self.statusLabel.numberOfLines = 2;
         self.statusLabel.textAlignment = NSTextAlignmentCenter;
         self.statusLabel.textColor = [UIColor whiteColor];
-        self.statusLabel.font = [UIFont boldSystemFontOfSize:13];
-        self.statusLabel.layer.shadowColor = [UIColor colorWithRed:0.0 green:0.8 blue:1.0 alpha:1.0].CGColor;
+        self.statusLabel.font = [UIFont boldSystemFontOfSize:14];
         self.statusLabel.layer.shadowRadius = 5.0;
         self.statusLabel.layer.shadowOpacity = 1.0;
         self.statusLabel.layer.shadowOffset = CGSizeZero;
         [self addSubview:self.statusLabel];
         
-        // 4. Linh khí
+        // 5. Hệ thống Linh khí
         [self setupQiEmitter:CGPointMake(centerX, centerY)];
+        
+        self.lastBatteryLevel = -1;
     }
     return self;
 }
 
-- (void)startNormalArraySpin {
-    [self.arrayImageView.layer removeAnimationForKey:@"spinAnimation"];
+- (void)drawBaguaMagicArray {
+    // Vòng ngoài
+    self.outerRing = [CAShapeLayer layer];
+    self.outerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(5, 5, 180, 180)].CGPath;
+    self.outerRing.fillColor = [UIColor clearColor].CGColor;
+    self.outerRing.lineWidth = 2.0;
+    self.outerRing.shadowRadius = 8.0;
+    self.outerRing.shadowOpacity = 1.0;
+    self.outerRing.shadowOffset = CGSizeZero;
+    [self.arrayContainer.layer addSublayer:self.outerRing];
+    
+    // Vòng trong
+    self.innerRing = [CAShapeLayer layer];
+    self.innerRing.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(25, 25, 140, 140)].CGPath;
+    self.innerRing.fillColor = [UIColor clearColor].CGColor;
+    self.innerRing.lineWidth = 1.5;
+    self.innerRing.lineDashPattern = @[@12, @6, @4, @6];
+    self.innerRing.shadowRadius = 5.0;
+    self.innerRing.shadowOpacity = 1.0;
+    self.innerRing.shadowOffset = CGSizeZero;
+    [self.arrayContainer.layer addSublayer:self.innerRing];
+    
+    // Vẽ Bát Quái
+    NSArray *bagua = @[@"☰", @"☱", @"☲", @"☳", @"☴", @"☵", @"☶", @"☷"];
+    self.baguaLabels = [NSMutableArray array];
+    for (int i = 0; i < 8; i++) {
+        UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
+        lbl.center = CGPointMake(95, 95); // Tâm trận pháp
+        lbl.text = bagua[i];
+        lbl.font = [UIFont systemFontOfSize:16 weight:UIFontWeightBold];
+        lbl.textAlignment = NSTextAlignmentCenter;
+        
+        // Thuật toán đẩy chữ ra thành vòng tròn
+        CGAffineTransform t = CGAffineTransformMakeRotation(i * (M_PI / 4.0));
+        t = CGAffineTransformTranslate(t, 0, -75);
+        lbl.transform = t;
+        
+        [self.arrayContainer addSubview:lbl];
+        [self.baguaLabels addObject:lbl];
+    }
+    
+    // Xoay vĩnh cửu
     CABasicAnimation *spin = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
     spin.toValue = @(M_PI * 2.0);
-    spin.duration = 25.0; // Quay chậm tĩnh tâm
+    spin.duration = 20.0;
     spin.repeatCount = HUGE_VALF;
-    [self.arrayImageView.layer addAnimation:spin forKey:@"spinAnimation"];
+    [self.arrayContainer.layer addAnimation:spin forKey:@"spin"];
 }
 
 - (void)setupQiEmitter:(CGPoint)targetCenter {
-    self.screenEdgeQiEmitter = [CAEmitterLayer layer];
+    self.qiEmitter = [CAEmitterLayer layer];
     CGRect screenBounds = [UIScreen mainScreen].bounds;
-    self.screenEdgeQiEmitter.emitterPosition = targetCenter;
-    self.screenEdgeQiEmitter.emitterSize = CGSizeMake(screenBounds.size.width, screenBounds.size.height);
-    self.screenEdgeQiEmitter.emitterShape = kCAEmitterLayerRectangle;
-    self.screenEdgeQiEmitter.renderMode = kCAEmitterLayerAdditive;
+    self.qiEmitter.emitterPosition = targetCenter;
+    self.qiEmitter.emitterSize = CGSizeMake(screenBounds.size.width + 50, screenBounds.size.height + 50);
+    self.qiEmitter.emitterShape = kCAEmitterLayerRectangle;
+    self.qiEmitter.renderMode = kCAEmitterLayerAdditive;
     
-    CAEmitterCell *edgeCell = [CAEmitterCell emitterCell];
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(3, 3), NO, 0);
-    [[UIColor colorWithRed:0.2 green:0.9 blue:1.0 alpha:1.0] setFill];
-    [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 3, 3)] fill];
+    CAEmitterCell *cell = [CAEmitterCell emitterCell];
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(4, 4), NO, 0);
+    [[UIColor whiteColor] setFill];
+    [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 4, 4)] fill];
     UIImage *qiDot = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
-    edgeCell.contents = (id)qiDot.CGImage;
-    edgeCell.birthRate = 40.0;
-    edgeCell.lifetime = 1.8;
-    edgeCell.velocity = -200.0; 
-    edgeCell.velocityRange = 30.0;
-    edgeCell.alphaSpeed = -0.4;
-    edgeCell.scale = 0.6;
+    cell.contents = (id)qiDot.CGImage;
+    cell.birthRate = 45.0;
+    cell.lifetime = 1.8;
+    cell.velocity = -250.0; // Hút thẳng vào nhân vật
+    cell.velocityRange = 40.0;
+    cell.alphaSpeed = -0.5;
+    cell.scale = 0.8;
     
-    self.screenEdgeQiEmitter.emitterCells = @[edgeCell];
-    [self.layer insertSublayer:self.screenEdgeQiEmitter below:self.arrayImageView.layer];
+    self.qiEmitter.emitterCells = @[cell];
+    [self.layer insertSublayer:self.qiEmitter below:self.arrayContainer.layer];
+}
+
+// --- XỬ LÝ HIỆU ỨNG TĨNH CHO TỪNG CẢNH GIỚI ---
+- (void)applyRealmEffects:(int)majorLevel {
+    UIColor *auraColor;
+    float spinSpeed = 20.0;
+    [self.flashView.layer removeAnimationForKey:@"lightning"]; // Tắt lôi kiếp mặc định
+    
+    // Tùy chỉnh hào quang theo cảnh giới
+    if (majorLevel <= 2) { // Phàm Nhân, Luyện Khí
+        auraColor = [UIColor colorWithRed:0.5 green:0.8 blue:1.0 alpha:1.0];
+    } else if (majorLevel <= 4) { // Trúc Cơ, Kim Đan
+        auraColor = [UIColor colorWithRed:1.0 green:0.8 blue:0.0 alpha:1.0]; // Ánh Kim
+        spinSpeed = 15.0;
+    } else if (majorLevel <= 6) { // Nguyên Anh, Hóa Thần
+        auraColor = [UIColor colorWithRed:0.8 green:0.0 blue:1.0 alpha:1.0]; // Tím Huyền Ảo
+        spinSpeed = 10.0;
+    } else if (majorLevel <= 8) { // Luyện Hư, Đại Thừa
+        auraColor = [UIColor colorWithRed:1.0 green:0.2 blue:0.2 alpha:1.0]; // Huyết Sắc Uy Áp
+        spinSpeed = 7.0;
+    } else { // Độ Kiếp, Phi Thăng
+        auraColor = [UIColor cyanColor]; // Lôi Điện
+        spinSpeed = 4.0; // Xoay cực nhanh
+        
+        // Gọi Thiên Lôi
+        CAKeyframeAnimation *lightning = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
+        lightning.values = @[@0, @0.8, @0, @0.4, @0];
+        lightning.keyTimes = @[@0, @0.05, @0.1, @0.15, @1.0];
+        lightning.duration = 2.0; // Cứ 2s giật 1 phát
+        lightning.repeatCount = HUGE_VALF;
+        [self.flashView.layer addAnimation:lightning forKey:@"lightning"];
+    }
+    
+    // Cập nhật màu Trận pháp & Hạt linh khí
+    self.outerRing.strokeColor = auraColor.CGColor;
+    self.outerRing.shadowColor = auraColor.CGColor;
+    self.innerRing.strokeColor = auraColor.CGColor;
+    self.innerRing.shadowColor = auraColor.CGColor;
+    self.statusLabel.layer.shadowColor = auraColor.CGColor;
+    if (self.fallbackMonk) self.fallbackMonk.layer.shadowColor = auraColor.CGColor;
+    
+    for (UILabel *lbl in self.baguaLabels) {
+        lbl.textColor = auraColor;
+    }
+    
+    CAEmitterCell *cell = [self.qiEmitter.emitterCells firstObject];
+    cell.color = auraColor.CGColor;
+    if (majorLevel >= 7) cell.birthRate = 100.0; // Đại thừa linh khí siêu dày
+    else cell.birthRate = 45.0;
+    self.qiEmitter.emitterCells = @[cell];
+    
+    // Cập nhật tốc độ quay
+    [self.arrayContainer.layer removeAnimationForKey:@"spin"];
+    CABasicAnimation *spin = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+    spin.toValue = @(M_PI * 2.0);
+    spin.duration = spinSpeed;
+    spin.repeatCount = HUGE_VALF;
+    [self.arrayContainer.layer addAnimation:spin forKey:@"spin"];
 }
 
 - (void)updateTuVi:(int)currentBattery {
     if (self.lastBatteryLevel == -1) {
         self.lastBatteryLevel = currentBattery;
+        // Áp dụng hiệu ứng tĩnh ngay khi vừa cắm sạc
+        [self applyRealmEffects:getCultivationStatus(currentBattery).majorLevel];
     }
     
-    if (self.isBreakingThrough) return; // Đang đột phá thì bỏ qua cập nhật
-    
-    CultivationStatus oldStatus = getCultivationStatus(self.lastBatteryLevel);
-    CultivationStatus newStatus = getCultivationStatus(currentBattery);
+    CultivationStatus status = getCultivationStatus(currentBattery);
     
     if (currentBattery >= 100) {
-        self.statusLabel.text = @"PHI THĂNG\nĐại Đạo Viên Mãn";
+        self.statusLabel.text = @"PHI THĂNG\n· Đại Đạo Viên Mãn ·";
         return;
     }
     
-    // Nếu có sự chuyển biến tiểu cảnh giới hoặc đại cảnh giới
-    if (![oldStatus.subRealm isEqualToString:newStatus.subRealm] || oldStatus.majorLevel != newStatus.majorLevel) {
-        [self processBreakthroughFrom:oldStatus to:newStatus battery:currentBattery];
+    // Phát hiện ĐỘT PHÁ
+    if (currentBattery > self.lastBatteryLevel) {
+        [self triggerBreakthrough:status];
     } else {
-        // Bình thường
-        [self setStatusText:newStatus];
+        if (status.subRealm.length > 0) {
+            self.statusLabel.text = [NSString stringWithFormat:@"%@\n· %@ ·", status.realmName, status.subRealm];
+        } else {
+            self.statusLabel.text = status.realmName;
+        }
     }
-    
     self.lastBatteryLevel = currentBattery;
 }
 
-- (void)setStatusText:(CultivationStatus)status {
-    if (status.subRealm.length > 0) {
-        self.statusLabel.text = [NSString stringWithFormat:@"%@\n· %@ ·", status.realmName, status.subRealm];
-    } else {
-        self.statusLabel.text = status.realmName;
-    }
-}
-
-// --- QUY TRÌNH ĐỘT PHÁ NGHỊCH THIÊN ---
-- (void)processBreakthroughFrom:(CultivationStatus)oldStatus to:(CultivationStatus)newStatus battery:(int)battery {
-    self.isBreakingThrough = YES;
-    
-    // 1. Chữ chuyển sang trạng thái đột phá
-    self.statusLabel.text = @"— ĐANG ĐỘT PHÁ —";
+- (void)triggerBreakthrough:(CultivationStatus)newStatus {
+    self.statusLabel.text = @"— ĐỘT PHÁ —";
     self.statusLabel.textColor = [UIColor yellowColor];
     
-    // 2. Trận pháp xoay cuồng bạo
-    [self.arrayImageView.layer removeAnimationForKey:@"spinAnimation"];
-    CABasicAnimation *fastSpin = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
-    fastSpin.toValue = @(M_PI * 2.0);
-    fastSpin.duration = 1.0; 
-    fastSpin.repeatCount = 3.0;
-    [self.arrayImageView.layer addAnimation:fastSpin forKey:@"fastSpin"];
+    // Linh khí tràn ngập
+    CAEmitterCell *cell = [self.qiEmitter.emitterCells firstObject];
+    float oldBirth = cell.birthRate;
+    cell.birthRate = 250.0;
+    self.qiEmitter.emitterCells = @[cell];
     
-    // 3. Linh khí tụ mạnh (Nhập thể)
-    CAEmitterCell *cell = [self.screenEdgeQiEmitter.emitterCells firstObject];
-    cell.birthRate = 150.0;
-    cell.velocity = -400.0; // Rút linh khí cực nhanh
-    self.screenEdgeQiEmitter.emitterCells = @[cell];
-    
-    // 4. Hiệu ứng riêng theo từng Đại Cảnh Giới mới
-    if (newStatus.majorLevel == 4) { // Lên Kim Đan (Ánh kim)
-        self.arrayImageView.backgroundColor = [[UIColor yellowColor] colorWithAlphaComponent:0.3];
-        self.arrayImageView.layer.cornerRadius = 90;
-    } 
-    else if (newStatus.majorLevel >= 9) { // Độ Kiếp (Thiên Lôi)
-        [self simulateThunderStrike];
-    }
-    
-    // Trận pháp phình to hấp thu
-    [UIView animateWithDuration:1.0 animations:^{
-        self.arrayImageView.transform = CGAffineTransformMakeScale(1.2, 1.2);
+    // Trận pháp phình to
+    [UIView animateWithDuration:1.5 animations:^{
+        self.arrayContainer.transform = CGAffineTransformMakeScale(1.3, 1.3);
     } completion:^(BOOL finished) {
-        
-        // 5. Ánh sáng lóe nhẹ (Hoàn thành đột phá)
+        // Lóa sáng đột phá
         [UIView animateWithDuration:0.2 animations:^{
-            self.flashView.alpha = 0.8;
-            self.arrayImageView.transform = CGAffineTransformIdentity;
+            self.flashView.alpha = 0.9;
+            self.arrayContainer.transform = CGAffineTransformIdentity;
         } completion:^(BOOL finished) {
             [UIView animateWithDuration:0.5 animations:^{
                 self.flashView.alpha = 0.0;
-                self.arrayImageView.backgroundColor = [UIColor clearColor];
             } completion:^(BOOL finished) {
-                
-                // 6. Cảnh giới mới ổn định, trở lại bình thường
+                // Đột phá thành công, áp dụng hiệu ứng cảnh giới mới
                 self.statusLabel.textColor = [UIColor whiteColor];
-                [self setStatusText:newStatus];
-                
-                // Trả linh khí về tĩnh lặng
-                cell.birthRate = 40.0;
-                cell.velocity = -200.0;
-                self.screenEdgeQiEmitter.emitterCells = @[cell];
-                
-                [self startNormalArraySpin];
-                self.isBreakingThrough = NO;
+                self.statusLabel.text = [NSString stringWithFormat:@"%@\n· %@ ·", newStatus.realmName, newStatus.subRealm];
+                [self applyRealmEffects:newStatus.majorLevel];
             }];
-        }];
-    }];
-}
-
-- (void)simulateThunderStrike {
-    // Rung chuyển thiên địa
-    CABasicAnimation *shake = [CABasicAnimation animationWithKeyPath:@"position"];
-    shake.duration = 0.05;
-    shake.repeatCount = 20;
-    shake.autoreverses = YES;
-    shake.fromValue = [NSValue valueWithCGPoint:CGPointMake(self.center.x - 5, self.center.y)];
-    shake.toValue = [NSValue valueWithCGPoint:CGPointMake(self.center.x + 5, self.center.y)];
-    [self.layer addAnimation:shake forKey:@"shake"];
-    
-    // Chớp nháy lôi kiếp
-    self.flashView.backgroundColor = [UIColor cyanColor];
-    [UIView animateWithDuration:0.1 animations:^{
-        self.flashView.alpha = 0.7;
-    } completion:^(BOOL finished) {
-        [UIView animateWithDuration:0.1 animations:^{
-            self.flashView.alpha = 0.0;
-            self.flashView.backgroundColor = [UIColor whiteColor];
         }];
     }];
 }
 
 @end
 
-// --- VỊ TRÍ HIỂN THỊ ---
 static TMCCultivationView *cultivationView = nil;
 
 %hook CSCoverSheetViewController 
-
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
     UIDevice *device = [UIDevice currentDevice];
     device.batteryMonitoringEnabled = YES;
-    
     if (device.batteryState == UIDeviceBatteryStateCharging || device.batteryState == UIDeviceBatteryStateFull) {
         if (!cultivationView) {
             cultivationView = [[TMCCultivationView alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -328,7 +319,6 @@ static TMCCultivationView *cultivationView = nil;
         }
     }
 }
-
 - (void)viewDidDisappear:(BOOL)animated {
     %orig;
     if (cultivationView) {
@@ -336,16 +326,13 @@ static TMCCultivationView *cultivationView = nil;
         cultivationView = nil;
     }
 }
-
 %end
 
 %hook SBUIController 
-
 - (void)updateBatteryState:(id)arg1 {
     %orig;
     UIDevice *device = [UIDevice currentDevice];
     device.batteryMonitoringEnabled = YES;
-    
     if (cultivationView) {
         if (device.batteryState == UIDeviceBatteryStateUnplugged) {
             [UIView animateWithDuration:0.4 animations:^{
@@ -359,5 +346,4 @@ static TMCCultivationView *cultivationView = nil;
         }
     }
 }
-
 %end
