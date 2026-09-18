@@ -7,7 +7,7 @@
 @end
 
 // ==========================================
-// CẢNH GIỚI
+// HỆ THỐNG CẢNH GIỚI
 // ==========================================
 typedef struct {
     int majorLevel;
@@ -32,6 +32,9 @@ CultivationStatus getCultivationStatus(int battery) {
     return status;
 }
 
+// ==========================================
+// INTERFACE
+// ==========================================
 @interface TMCCultivationView : UIView
 
 @property (nonatomic, strong) UIView *backgroundLayer;
@@ -64,6 +67,8 @@ CultivationStatus getCultivationStatus(int battery) {
 @property (nonatomic, assign) float qiBirthRate;
 @property (nonatomic, strong) UIColor *currentAuraColor;
 @property (nonatomic, strong) NSTimer *ascensionTimer;
+@property (nonatomic, assign) BOOL isAscension;
+@property (nonatomic, assign) NSTimeInterval lastSpawnTime;
 
 - (CAShapeLayer *)createSlimMonkPathWithSize:(CGFloat)size;
 - (UIBezierPath *)createRobeLinesPathWithSize:(CGFloat)size;
@@ -82,9 +87,14 @@ CultivationStatus getCultivationStatus(int battery) {
 - (void)spawnQiParticle;
 - (void)spawnAscensionParticle;
 - (void)clearAllRealmLayers;
+- (void)onQiTick;
+- (void)onAscensionTick;
 
 @end
 
+// ==========================================
+// IMPLEMENTATION
+// ==========================================
 @implementation TMCCultivationView
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -109,34 +119,29 @@ CultivationStatus getCultivationStatus(int battery) {
         self.flashView.userInteractionEnabled = NO;
         [self addSubview:self.flashView];
 
-        // Trận pháp
         self.arrayContainer = [[UIView alloc] initWithFrame:CGRectMake(centerX - 140, centerY - 140, 280, 280)];
         self.arrayContainer.userInteractionEnabled = NO;
         [self addSubview:self.arrayContainer];
         [self drawUltimateBaguaArray];
 
-        // Nguyên Anh (bóng sáng phía sau lưng)
         self.nascentSoulLayer = [self createSlimMonkPathWithSize:75];
         self.nascentSoulLayer.position = CGPointMake(centerX, centerY - 70);
         self.nascentSoulLayer.fillColor = [[UIColor whiteColor] colorWithAlphaComponent:0.5].CGColor;
         self.nascentSoulLayer.opacity = 0.0;
         [self.layer addSublayer:self.nascentSoulLayer];
 
-        // Pháp Tướng
         self.dharmaIdolLayer = [self createSlimMonkPathWithSize:210];
         self.dharmaIdolLayer.position = CGPointMake(centerX, centerY - 20);
         self.dharmaIdolLayer.fillColor = [UIColor clearColor].CGColor;
         self.dharmaIdolLayer.opacity = 0.0;
         [self.layer addSublayer:self.dharmaIdolLayer];
 
-        // Pháp Tắc
         self.lawsLayer = [[UIView alloc] initWithFrame:CGRectMake(centerX - 120, centerY - 120, 240, 240)];
         self.lawsLayer.alpha = 0.0;
         self.lawsLayer.userInteractionEnabled = NO;
         [self addSubview:self.lawsLayer];
         [self drawLawsOrbit];
 
-        // Phi Thăng
         self.ascensionContainer = [[UIView alloc] initWithFrame:frame];
         self.ascensionContainer.alpha = 0.0;
         self.ascensionContainer.userInteractionEnabled = NO;
@@ -165,7 +170,6 @@ CultivationStatus getCultivationStatus(int battery) {
         self.robeLinesLayer.lineCap = kCALineCapRound;
         [self.layer addSublayer:self.robeLinesLayer];
 
-        // Kim Đan
         self.goldenCoreLayer = [CAShapeLayer layer];
         self.goldenCoreLayer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(-10, -10, 20, 20)].CGPath;
         self.goldenCoreLayer.fillColor = [UIColor colorWithRed:1.0 green:0.85 blue:0.15 alpha:1.0].CGColor;
@@ -177,7 +181,6 @@ CultivationStatus getCultivationStatus(int battery) {
         self.goldenCoreLayer.opacity = 0.0;
         [self.layer addSublayer:self.goldenCoreLayer];
 
-        // Status
         self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 160, centerY + 145, 320, 50)];
         self.statusLabel.numberOfLines = 2;
         self.statusLabel.textAlignment = NSTextAlignmentCenter;
@@ -198,7 +201,6 @@ CultivationStatus getCultivationStatus(int battery) {
         self.absorbingLabel.userInteractionEnabled = NO;
         [self addSubview:self.absorbingLabel];
 
-        // Nút TEST
         self.testMilestones = @[@10, @14, @18, @24, @30, @40, @55, @70, @85, @97, @100];
         self.testIndex = 0;
         self.testButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -218,84 +220,69 @@ CultivationStatus getCultivationStatus(int battery) {
         self.lastBatteryLevel = -1;
         self.currentAuraColor = [UIColor lightGrayColor];
         self.isAscension = NO;
+        self.lastSpawnTime = 0;
     }
     return self;
 }
 
 // ==========================================
-// VẼ NHÂN VẬT — SILHOUETTE CHUẨN THEO ẢNH
+// VẼ SILHOUETTE TU SĨ
 // ==========================================
 - (CAShapeLayer *)createSlimMonkPathWithSize:(CGFloat)size {
     CAShapeLayer *layer = [CAShapeLayer layer];
     UIBezierPath *path = [UIBezierPath bezierPath];
     CGFloat s = size / 100.0;
 
-    // Bắt đầu đỉnh búi tóc
     [path moveToPoint:CGPointMake(0, -50*s)];
 
-    // === NỬA TRÁI ===
-    // Búi tóc (tròn, dính liền đầu)
+    // NỬA TRÁI
     [path addCurveToPoint:CGPointMake(-8*s, -42*s)
             controlPoint1:CGPointMake(-8*s, -51*s)
             controlPoint2:CGPointMake(-11*s, -46*s)];
-    // Đầu — oval đầy
     [path addCurveToPoint:CGPointMake(-14*s, -30*s)
             controlPoint1:CGPointMake(-12*s, -38*s)
             controlPoint2:CGPointMake(-14*s, -34*s)];
-    // Má xuống cằm
     [path addCurveToPoint:CGPointMake(-9*s, -19*s)
             controlPoint1:CGPointMake(-14*s, -25*s)
             controlPoint2:CGPointMake(-11*s, -21*s)];
-    // Cổ hơi lõm
     [path addCurveToPoint:CGPointMake(-10*s, -15*s)
             controlPoint1:CGPointMake(-7*s, -18*s)
             controlPoint2:CGPointMake(-9*s, -16*s)];
-    // Vai trái rộng xuôi
     [path addCurveToPoint:CGPointMake(-27*s, -6*s)
             controlPoint1:CGPointMake(-14*s, -13*s)
             controlPoint2:CGPointMake(-21*s, -9*s)];
-    // Tay áo ngoài rủ xuống
     [path addCurveToPoint:CGPointMake(-31*s, 12*s)
             controlPoint1:CGPointMake(-31*s, 2*s)
             controlPoint2:CGPointMake(-33*s, 7*s)];
-    // Khuỷu tay nhô nhẹ
     [path addCurveToPoint:CGPointMake(-29*s, 22*s)
             controlPoint1:CGPointMake(-32*s, 16*s)
             controlPoint2:CGPointMake(-32*s, 20*s)];
-    // Cổ tay + lòng bàn tay ngửa (lõm vào)
     [path addCurveToPoint:CGPointMake(-15*s, 26*s)
             controlPoint1:CGPointMake(-25*s, 26*s)
             controlPoint2:CGPointMake(-20*s, 27*s)];
-    // Mép trong bàn tay
     [path addCurveToPoint:CGPointMake(-9*s, 21*s)
             controlPoint1:CGPointMake(-12*s, 25*s)
             controlPoint2:CGPointMake(-10*s, 23*s)];
-    // Cánh tay trong ngược lên
     [path addCurveToPoint:CGPointMake(-12*s, 4*s)
             controlPoint1:CGPointMake(-7*s, 16*s)
             controlPoint2:CGPointMake(-10*s, 10*s)];
-    // Nách nối vào thân
     [path addCurveToPoint:CGPointMake(-15*s, -3*s)
             controlPoint1:CGPointMake(-13*s, 0*s)
             controlPoint2:CGPointMake(-14*s, -2*s)];
-    // Sườn hông
     [path addCurveToPoint:CGPointMake(-21*s, 14*s)
             controlPoint1:CGPointMake(-17*s, 3*s)
             controlPoint2:CGPointMake(-19*s, 8*s)];
-    // Hông
     [path addCurveToPoint:CGPointMake(-29*s, 26*s)
             controlPoint1:CGPointMake(-23*s, 19*s)
             controlPoint2:CGPointMake(-26*s, 23*s)];
-    // Đầu gối xòe rộng
     [path addCurveToPoint:CGPointMake(-46*s, 38*s)
             controlPoint1:CGPointMake(-34*s, 30*s)
             controlPoint2:CGPointMake(-44*s, 33*s)];
-    // Đáy cong xuống giữa
     [path addCurveToPoint:CGPointMake(0, 47*s)
             controlPoint1:CGPointMake(-40*s, 45*s)
             controlPoint2:CGPointMake(-22*s, 48*s)];
 
-    // === NỬA PHẢI (mirror) ===
+    // NỬA PHẢI
     [path addCurveToPoint:CGPointMake(46*s, 38*s)
             controlPoint1:CGPointMake(22*s, 48*s)
             controlPoint2:CGPointMake(40*s, 45*s)];
@@ -343,7 +330,7 @@ CultivationStatus getCultivationStatus(int battery) {
             controlPoint2:CGPointMake(8*s, -51*s)];
     [path closePath];
 
-    // === KHOÉT 2 BÀN TAY NGỬA ===
+    // KHOÉT 2 BÀN TAY
     UIBezierPath *handL = [UIBezierPath bezierPath];
     [handL moveToPoint:CGPointMake(-15*s, 12*s)];
     [handL addCurveToPoint:CGPointMake(-10*s, 24*s)
@@ -381,7 +368,6 @@ CultivationStatus getCultivationStatus(int battery) {
     UIBezierPath *path = [UIBezierPath bezierPath];
     CGFloat s = size / 100.0;
 
-    // Cổ áo chữ V
     [path moveToPoint:CGPointMake(-10*s, -15*s)];
     [path addQuadCurveToPoint:CGPointMake(-3*s, -2*s) controlPoint:CGPointMake(-8*s, -8*s)];
     [path moveToPoint:CGPointMake(10*s, -15*s)];
@@ -389,31 +375,24 @@ CultivationStatus getCultivationStatus(int battery) {
     [path moveToPoint:CGPointMake(-3*s, -2*s)];
     [path addLineToPoint:CGPointMake(3*s, -2*s)];
 
-    // Nếp tay áo trái (2 đường song song)
     [path moveToPoint:CGPointMake(-25*s, -3*s)];
     [path addQuadCurveToPoint:CGPointMake(-27*s, 22*s) controlPoint:CGPointMake(-29*s, 10*s)];
     [path moveToPoint:CGPointMake(-16*s, 4*s)];
     [path addQuadCurveToPoint:CGPointMake(-13*s, 20*s) controlPoint:CGPointMake(-15*s, 12*s)];
 
-    // Nếp tay áo phải
     [path moveToPoint:CGPointMake(25*s, -3*s)];
     [path addQuadCurveToPoint:CGPointMake(27*s, 22*s) controlPoint:CGPointMake(29*s, 10*s)];
     [path moveToPoint:CGPointMake(16*s, 4*s)];
     [path addQuadCurveToPoint:CGPointMake(13*s, 20*s) controlPoint:CGPointMake(15*s, 12*s)];
 
-    // Nếp đầu gối trái
     [path moveToPoint:CGPointMake(-24*s, 24*s)];
     [path addQuadCurveToPoint:CGPointMake(-40*s, 35*s) controlPoint:CGPointMake(-34*s, 26*s)];
-
-    // Nếp đầu gối phải
     [path moveToPoint:CGPointMake(24*s, 24*s)];
     [path addQuadCurveToPoint:CGPointMake(40*s, 35*s) controlPoint:CGPointMake(34*s, 26*s)];
 
-    // Nếp gấu áo dưới ngực
     [path moveToPoint:CGPointMake(-14*s, 7*s)];
     [path addQuadCurveToPoint:CGPointMake(14*s, 7*s) controlPoint:CGPointMake(0, 11*s)];
 
-    // Nếp giữa ngực (thắt đai)
     [path moveToPoint:CGPointMake(0, 7*s)];
     [path addLineToPoint:CGPointMake(0, 20*s)];
 
@@ -421,7 +400,7 @@ CultivationStatus getCultivationStatus(int battery) {
 }
 
 // ==========================================
-// VẼ TRẬN PHÁP / MÂY / SÉT / KHÔNG GIAN
+// VẼ TRẬN PHÁP
 // ==========================================
 - (void)drawUltimateBaguaArray {
     self.spinLayerCW = [[UIView alloc] initWithFrame:self.arrayContainer.bounds];
@@ -554,7 +533,6 @@ CultivationStatus getCultivationStatus(int battery) {
 - (void)drawAscensionSystem:(CGPoint)center {
     CGFloat gw = [UIScreen mainScreen].bounds.size.width;
 
-    // Cổng trời
     self.heavenlyGateLayer = [CAShapeLayer layer];
     UIBezierPath *gatePath = [UIBezierPath bezierPath];
     [gatePath appendPath:[UIBezierPath bezierPathWithRect:CGRectMake(gw/2 - 70, 50, 15, 100)]];
@@ -571,7 +549,6 @@ CultivationStatus getCultivationStatus(int battery) {
     self.heavenlyGateLayer.shadowOffset = CGSizeZero;
     [self.ascensionContainer.layer addSublayer:self.heavenlyGateLayer];
 
-    // Luồng tiên quang
     self.immortalBeamLayer = [CAShapeLayer layer];
     UIBezierPath *beamPath = [UIBezierPath bezierPath];
     [beamPath moveToPoint:CGPointMake(gw/2 - 50, 60)];
@@ -583,7 +560,6 @@ CultivationStatus getCultivationStatus(int battery) {
     self.immortalBeamLayer.fillColor = [[UIColor yellowColor] colorWithAlphaComponent:0.18].CGColor;
     [self.ascensionContainer.layer addSublayer:self.immortalBeamLayer];
 
-    // Đài sen
     self.lotusBaseLayer = [CAShapeLayer layer];
     UIBezierPath *lotusPath = [UIBezierPath bezierPath];
     for(int i=-2; i<=2; i++) {
@@ -608,11 +584,11 @@ CultivationStatus getCultivationStatus(int battery) {
 }
 
 // ==========================================
-// HỆ THỐNG HẠT LINH KHÍ (THAY CAEmitter)
+// HẠT LINH KHÍ
 // ==========================================
 - (void)tickQi {
     if (self.qiBirthRate <= 0) return;
-    if (self.isAscension) return; // Ascension có timer riêng
+    if (self.isAscension) return;
 
     NSTimeInterval now = CACurrentMediaTime();
     if (now - self.lastSpawnTime < 1.0 / self.qiBirthRate) return;
@@ -678,26 +654,20 @@ CultivationStatus getCultivationStatus(int battery) {
 }
 
 - (void)clearAllRealmLayers {
-    // Xoá hào quang phi thăng cũ (nếu có)
     NSMutableArray *toRemove = [NSMutableArray array];
     for (CALayer *l in self.layer.sublayers) {
         if ([l.name hasPrefix:@"halo"]) [toRemove addObject:l];
     }
     for (CALayer *l in toRemove) [l removeFromSuperlayer];
 
-    // Dừng timer cũ
     if (self.qiTimer) { [self.qiTimer invalidate]; self.qiTimer = nil; }
     if (self.ascensionTimer) { [self.ascensionTimer invalidate]; self.ascensionTimer = nil; }
 
-    // Xoá hạt cũ
     for (UIView *v in self.backgroundLayer.subviews) {
         [v removeFromSuperview];
     }
 
-    // Reset flag
     self.isAscension = NO;
-
-    // Reset vị trí nhân vật
     self.monkLayer.position = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2 - 20);
     self.robeLinesLayer.position = self.monkLayer.position;
 
@@ -710,7 +680,7 @@ CultivationStatus getCultivationStatus(int battery) {
 }
 
 // ==========================================
-// APPLY REALM EFFECTS — TRUNG TÂM HIỆU ỨNG
+// APPLY REALM EFFECTS
 // ==========================================
 - (void)applyRealmEffects:(int)majorLevel {
     UIColor *auraColor = [UIColor clearColor];
@@ -721,7 +691,6 @@ CultivationStatus getCultivationStatus(int battery) {
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
 
-    // RESET MỌI THỨ TRƯỚC KHI SET
     self.goldenCoreLayer.opacity = 0.0;
     self.nascentSoulLayer.opacity = 0.0;
     self.dharmaIdolLayer.opacity = 0.0;
@@ -738,12 +707,10 @@ CultivationStatus getCultivationStatus(int battery) {
     self.monkLayer.strokeColor = [[UIColor whiteColor] colorWithAlphaComponent:0.9].CGColor;
     self.robeLinesLayer.strokeColor = [[UIColor whiteColor] colorWithAlphaComponent:0.85].CGColor;
 
-    // Reset Pháp Tắc color
     for (UIView *v in self.lawsLayer.subviews) {
         if ([v isKindOfClass:[UILabel class]]) ((UILabel *)v).textColor = [UIColor redColor];
     }
 
-    // Xoá layer phụ
     [self clearAllRealmLayers];
 
     switch (majorLevel) {
@@ -780,7 +747,6 @@ CultivationStatus getCultivationStatus(int battery) {
             break;
 
         case 4: {
-            // === KIM ĐAN — RÕ RÀNG NHẤT ===
             auraColor = [UIColor colorWithRed:1.0 green:0.85 blue:0.15 alpha:1.0];
             qiBirthRate = 180.0;
             self.goldenCoreLayer.opacity = 1.0;
@@ -810,7 +776,6 @@ CultivationStatus getCultivationStatus(int battery) {
         }
 
         case 5: {
-            // === NGUYÊN ANH — PHẢI THẤY BÓNG TU SĨ NHỎ ===
             auraColor = [UIColor colorWithRed:0.85 green:0.4 blue:1.0 alpha:1.0];
             qiBirthRate = 240.0;
             self.nascentSoulLayer.opacity = 1.0;
@@ -842,7 +807,6 @@ CultivationStatus getCultivationStatus(int battery) {
         }
 
         case 6: {
-            // === HÓA THẦN — PHÁP TƯỚNG KHUẾCH ĐẠI ===
             auraColor = [UIColor colorWithRed:1.0 green:0.25 blue:0.8 alpha:1.0];
             qiBirthRate = 320.0;
             self.nascentSoulLayer.opacity = 0.9;
@@ -872,13 +836,11 @@ CultivationStatus getCultivationStatus(int battery) {
         }
 
         case 7: {
-            // === LUYỆN HƯ — KHÔNG GIAN VỠ RÕ ===
             auraColor = [UIColor colorWithRed:0.65 green:0.1 blue:0.9 alpha:1.0];
             qiBirthRate = 380.0;
             self.backgroundLayer.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.55];
             self.spaceFragmentsLayer.opacity = 1.0;
 
-            // Vẽ 30 mảnh vỡ quanh nhân vật
             UIBezierPath *frags = [UIBezierPath bezierPath];
             CGFloat cx = self.bounds.size.width/2;
             CGFloat cy = self.bounds.size.height/2 - 20;
@@ -917,7 +879,6 @@ CultivationStatus getCultivationStatus(int battery) {
         }
 
         case 8: {
-            // === ĐẠI THỪA — PHÁP TẮC + PHÁP TƯỚNG KHUẾCH ĐẠI ===
             auraColor = [UIColor redColor];
             qiBirthRate = 450.0;
             self.arrayContainer.transform = CGAffineTransformMakeScale(1.25, 1.25);
@@ -937,7 +898,6 @@ CultivationStatus getCultivationStatus(int battery) {
             dharmaPulse2.repeatCount = HUGE_VALF;
             [self.dharmaIdolLayer addAnimation:dharmaPulse2 forKey:@"dharmaPulse2"];
 
-            // Chữ pháp tắc to hơn
             for (UIView *v in self.lawsLayer.subviews) {
                 if ([v isKindOfClass:[UILabel class]]) {
                     UILabel *lbl = (UILabel *)v;
@@ -954,13 +914,11 @@ CultivationStatus getCultivationStatus(int battery) {
         }
 
         case 9: {
-            // === ĐỘ KIẾP — SÉT NHẸ, MÂY NỔI ===
             auraColor = [UIColor cyanColor];
             qiBirthRate = 550.0;
             self.cloudLayer.opacity = 1.0;
             self.arrayContainer.transform = CGAffineTransformMakeScale(1.35, 1.35);
 
-            // Sét nhiều nhánh
             UIBezierPath *lt = [UIBezierPath bezierPath];
             CGFloat w = self.bounds.size.width;
             CGFloat h = self.bounds.size.height;
@@ -989,7 +947,6 @@ CultivationStatus getCultivationStatus(int battery) {
         }
 
         case 10: {
-            // === THIÊN KIẾP — SÉT DỮ DỘI ===
             auraColor = [UIColor cyanColor];
             qiBirthRate = 700.0;
             self.cloudLayer.opacity = 1.0;
@@ -1017,7 +974,6 @@ CultivationStatus getCultivationStatus(int battery) {
             storm.repeatCount = HUGE_VALF;
             [self.lightningLayer addAnimation:storm forKey:@"stormFX"];
 
-            // Nhân vật rung lắc
             CABasicAnimation *shake = [CABasicAnimation animationWithKeyPath:@"position.x"];
             shake.fromValue = @(self.monkLayer.position.x - 5);
             shake.toValue = @(self.monkLayer.position.x + 5);
@@ -1032,14 +988,12 @@ CultivationStatus getCultivationStatus(int battery) {
         }
 
         case 11: {
-            // === PHI THĂNG — BAY LÊN, HÀO QUANG ===
             auraColor = [UIColor colorWithRed:1.0 green:0.9 blue:0.6 alpha:1.0];
-            qiBirthRate = 0; // Tắt hạt thường, dùng timer ascension
+            qiBirthRate = 0;
             self.arrayContainer.alpha = 0.0;
             self.ascensionContainer.alpha = 1.0;
             self.isAscension = YES;
 
-            // Đổi viền áo sang vàng tiên
             self.monkLayer.strokeColor = [[UIColor colorWithRed:1.0 green:0.9 blue:0.6 alpha:1.0] CGColor];
             self.robeLinesLayer.strokeColor = [[UIColor colorWithRed:1.0 green:0.9 blue:0.6 alpha:0.95] CGColor];
             self.monkLayer.shadowColor = [UIColor yellowColor].CGColor;
@@ -1047,14 +1001,12 @@ CultivationStatus getCultivationStatus(int battery) {
             self.monkLayer.shadowOpacity = 1.0;
             self.monkLayer.shadowOffset = CGSizeZero;
 
-            // Nhân vật bay lên
             CGFloat targetY = self.bounds.size.height * 0.4;
             [UIView animateWithDuration:2.0 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 self.monkLayer.position = CGPointMake(self.bounds.size.width/2, targetY);
                 self.robeLinesLayer.position = self.monkLayer.position;
             } completion:nil];
 
-            // 3 lớp hào quang
             for (int i = 0; i < 3; i++) {
                 CAShapeLayer *halo = [CAShapeLayer layer];
                 CGFloat radius = 80 + i * 45;
@@ -1083,7 +1035,6 @@ CultivationStatus getCultivationStatus(int battery) {
                 [halo addAnimation:haloOpacity forKey:@"haloOpacity"];
             }
 
-            // Hạt vàng bay lên
             self.ascensionTimer = [NSTimer scheduledTimerWithTimeInterval:0.08
                                                                    target:self
                                                                  selector:@selector(onAscensionTick)
@@ -1098,11 +1049,9 @@ CultivationStatus getCultivationStatus(int battery) {
 
     [CATransaction commit];
 
-    // Cập nhật màu aura
     self.currentAuraColor = auraColor;
     self.qiBirthRate = qiBirthRate;
 
-    // Đổi màu bát quái + pháp tắc theo aura (trừ phi thăng)
     if (majorLevel != 11) {
         for (CALayer *l in self.spinLayerCW.layer.sublayers) {
             if ([l isKindOfClass:[CAShapeLayer class]]) ((CAShapeLayer *)l).strokeColor = auraColor.CGColor;
@@ -1115,7 +1064,6 @@ CultivationStatus getCultivationStatus(int battery) {
         }
     }
 
-    // Bật timer hạt linh khí
     if (qiBirthRate > 0 && !self.isAscension) {
         if (!self.qiTimer) {
             self.qiTimer = [NSTimer scheduledTimerWithTimeInterval:0.016
@@ -1151,10 +1099,8 @@ CultivationStatus getCultivationStatus(int battery) {
     [hap impactOccurred];
 
     int level = newStatus.majorLevel;
-    NSInteger durationMs = 800; // Tổng thời gian hiệu ứng
 
     if (level == 11) {
-        // Phi Thăng — flash trắng dài + fade chậm
         [UIView animateWithDuration:1.0 animations:^{
             self.flashView.backgroundColor = [UIColor whiteColor];
             self.flashView.alpha = 1.0;
@@ -1171,10 +1117,8 @@ CultivationStatus getCultivationStatus(int battery) {
         return;
     }
 
-    // Flash ngắn cho các cấp thường
     self.flashView.backgroundColor = (level >= 9) ? [UIColor cyanColor] : (level == 4 ? [UIColor yellowColor] : [UIColor whiteColor]);
 
-    // Rung máy
     if (level >= 6) {
         CABasicAnimation *shake = [CABasicAnimation animationWithKeyPath:@"position"];
         shake.duration = 0.04;
@@ -1185,7 +1129,6 @@ CultivationStatus getCultivationStatus(int battery) {
         [self.layer addAnimation:shake forKey:@"shake"];
     }
 
-    // Phóng to trận pháp
     [UIView animateWithDuration:0.35 animations:^{
         self.arrayContainer.transform = CGAffineTransformMakeScale(1.35, 1.35);
     } completion:^(BOOL finished) {
@@ -1193,7 +1136,6 @@ CultivationStatus getCultivationStatus(int battery) {
             self.flashView.alpha = 0.95;
             self.arrayContainer.transform = CGAffineTransformIdentity;
         } completion:^(BOOL finished) {
-            // Áp dụng cảnh giới mới TRONG LÚC màn hình sáng
             [self applyRealmEffects:level];
 
             [UIView animateWithDuration:0.8 animations:^{
@@ -1232,12 +1174,10 @@ CultivationStatus getCultivationStatus(int battery) {
 }
 
 // ==========================================
-// NÚT TEST — CHO PHÉP BẤM NHANH, KHÔNG BLOCK
+// NÚT TEST — CHO PHÉP BẤM NHANH, FORCE RESET
 // ==========================================
 - (void)handleTestTap {
-    // Nếu đang trong animation đột phá thì force reset
     if (self.isBreakingThrough) {
-        // Huỷ mọi animation đang chạy
         [self.layer removeAllAnimations];
         [self.monkLayer removeAllAnimations];
         [self.arrayContainer.layer removeAllAnimations];
@@ -1251,8 +1191,6 @@ CultivationStatus getCultivationStatus(int battery) {
 
     int fakeBattery = [self.testMilestones[self.testIndex] intValue];
     self.lastBatteryLevel = fakeBattery - 1;
-
-    // Gọi update
     [self updateTuVi:fakeBattery];
 
     self.testIndex++;
