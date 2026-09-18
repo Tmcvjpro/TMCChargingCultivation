@@ -201,7 +201,6 @@ static id tmc_ascImage = nil;
         pulse.repeatCount = HUGE_VALF;
         [self.absorbingLabel.layer addAnimation:pulse forKey:@"pulsingText"];
 
-        // CẬP NHẬT MỐC TEST NHẢY THẲNG QUA TỪNG ĐẠI CẢNH GIỚI ĐỂ THẤY RÕ HIỆU ỨNG
         self.testMilestones = @[@12, @15, @20, @27, @36, @48, @62, @79, @94, @99, @100];
         self.testIndex = 0;
         
@@ -400,9 +399,6 @@ static id tmc_ascImage = nil;
 
 - (void)drawSpaceFragments:(CGPoint)center {
     self.spaceFragmentsLayer = [CAShapeLayer layer];
-    self.spaceFragmentsLayer.fillColor = [[UIColor purpleColor] colorWithAlphaComponent:0.7].CGColor;
-    self.spaceFragmentsLayer.strokeColor = [UIColor cyanColor].CGColor;
-    self.spaceFragmentsLayer.lineWidth = 1.0;
     self.spaceFragmentsLayer.opacity = 0.0;
     [self.backgroundLayer.layer addSublayer:self.spaceFragmentsLayer];
 }
@@ -552,7 +548,7 @@ static id tmc_ascImage = nil;
 }
 
 // ==========================================
-// APPLY REALM EFFECTS (DÙNG ALPHA THAY CHO HIDDEN ĐỂ TRÁNH LỖI RENDER)
+// APPLY REALM EFFECTS
 // ==========================================
 - (void)applyRealmEffects:(int)majorLevel {
     UIColor *auraColor = [UIColor clearColor];
@@ -564,7 +560,6 @@ static id tmc_ascImage = nil;
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
 
-    // Reset toàn bộ bằng Alpha = 0.0 để dọn sạch rác hiệu ứng cũ
     self.goldenCoreLayer.opacity = 0.0;
     self.nascentSoulLayer.opacity = 0.0;
     self.dharmaIdolLayer.opacity = 0.0;
@@ -699,42 +694,68 @@ static id tmc_ascImage = nil;
             break;
         }
 
-        case 7: { // LUYỆN HƯ
+        // ========================================================
+        // ĐÃ CHỈNH SỬA DUY NHẤT CASE 7 (LUYỆN HƯ) NHƯ YÊU CẦU
+        // ========================================================
+        case 7: { 
             auraColor = [UIColor colorWithRed:0.65 green:0.1 blue:0.9 alpha:1.0];
             qiBirthRate = 380.0;
             self.backgroundLayer.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.55];
             self.spaceFragmentsLayer.opacity = 1.0;
             qiAccelY = 80.0;
 
-            UIBezierPath *frags = [UIBezierPath bezierPath];
-            CGFloat cx = self.bounds.size.width/2;
-            CGFloat cy = self.bounds.size.height/2 - 20;
-            for (int i = 0; i < 30; i++) {
-                CGFloat angle = (i / 30.0) * M_PI * 2 + ((arc4random_uniform(100) - 50) / 100.0);
-                CGFloat r = 130 + arc4random_uniform(60);
-                CGFloat x = cx + cos(angle) * r;
-                CGFloat y = cy + sin(angle) * r;
-                [frags moveToPoint:CGPointMake(x, y)];
-                [frags addLineToPoint:CGPointMake(x + 22, y - 10)];
-                [frags addLineToPoint:CGPointMake(x + 14, y + 18)];
-                [frags closePath];
+            UIBezierPath *cracks = [UIBezierPath bezierPath];
+            CGFloat w = self.bounds.size.width;
+            CGFloat h = self.bounds.size.height;
+            CGFloat cx = w / 2.0;
+            CGFloat cy = h / 2.0;
+            
+            // Tạo 20 đường nứt chính tủa ra từ tâm
+            for (int i = 0; i < 20; i++) {
+                CGFloat angle = (i / 20.0) * M_PI * 2 + (arc4random_uniform(100)/100.0 * 0.3);
+                CGFloat curX = cx + (arc4random_uniform(40) - 20); // Tâm nứt hơi lệch xíu cho tự nhiên
+                CGFloat curY = cy + (arc4random_uniform(40) - 20);
+                [cracks moveToPoint:CGPointMake(curX, curY)];
+                
+                CGFloat length = 0;
+                CGFloat maxLength = MAX(w, h) + 100;
+                while (length < maxLength) {
+                    CGFloat step = 20 + arc4random_uniform(40);
+                    length += step;
+                    angle += (arc4random_uniform(100) - 50) / 100.0 * 0.4; // Đổi hướng lởm chởm
+                    curX += cos(angle) * step;
+                    curY += sin(angle) * step;
+                    [cracks addLineToPoint:CGPointMake(curX, curY)];
+                    
+                    // Nhánh nứt phụ dày đặc
+                    if (arc4random_uniform(100) > 40) {
+                        CGFloat subAngle = angle + (arc4random_uniform(100) > 50 ? 0.7 : -0.7);
+                        CGFloat subStep = 15 + arc4random_uniform(30);
+                        [cracks moveToPoint:CGPointMake(curX, curY)];
+                        [cracks addLineToPoint:CGPointMake(curX + cos(subAngle)*subStep, curY + sin(subAngle)*subStep)];
+                        [cracks moveToPoint:CGPointMake(curX, curY)]; // Quay lại nhánh chính
+                    }
+                }
             }
-            self.spaceFragmentsLayer.path = frags.CGPath;
-
-            CABasicAnimation *fragSpin = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
-            fragSpin.fromValue = @0;
-            fragSpin.toValue = @(M_PI * 2);
-            fragSpin.duration = 15.0;
-            fragSpin.repeatCount = HUGE_VALF;
-            [self.spaceFragmentsLayer addAnimation:fragSpin forKey:@"fragSpin"];
-
-            CABasicAnimation *fragPulse = [CABasicAnimation animationWithKeyPath:@"opacity"];
-            fragPulse.fromValue = @0.3;
-            fragPulse.toValue = @1.0;
-            fragPulse.duration = 0.6;
-            fragPulse.autoreverses = YES;
-            fragPulse.repeatCount = HUGE_VALF;
-            [self.spaceFragmentsLayer addAnimation:fragPulse forKey:@"fragPulse"];
+            
+            self.spaceFragmentsLayer.path = cracks.CGPath;
+            self.spaceFragmentsLayer.fillColor = [UIColor clearColor].CGColor;
+            self.spaceFragmentsLayer.strokeColor = [[UIColor cyanColor] colorWithAlphaComponent:0.9].CGColor;
+            self.spaceFragmentsLayer.lineWidth = 1.5;
+            self.spaceFragmentsLayer.shadowColor = [UIColor purpleColor].CGColor;
+            self.spaceFragmentsLayer.shadowRadius = 8.0;
+            self.spaceFragmentsLayer.shadowOpacity = 1.0;
+            self.spaceFragmentsLayer.shadowOffset = CGSizeZero;
+            self.spaceFragmentsLayer.lineJoin = kCALineJoinMiter;
+            
+            // Hiệu ứng chớp nháy (Glitch/Flicker) của không gian vỡ
+            CABasicAnimation *crackFlicker = [CABasicAnimation animationWithKeyPath:@"opacity"];
+            crackFlicker.fromValue = @0.2;
+            crackFlicker.toValue = @1.0;
+            crackFlicker.duration = 0.15;
+            crackFlicker.autoreverses = YES;
+            crackFlicker.repeatCount = HUGE_VALF;
+            [self.spaceFragmentsLayer addAnimation:crackFlicker forKey:@"crackFlicker"];
 
             absorbText = @"Không gian phá toái, nắm giữ hư vô, uy áp chấn động.";
             break;
