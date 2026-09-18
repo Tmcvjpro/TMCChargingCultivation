@@ -24,7 +24,7 @@ CultivationStatus getCultivationStatus(int battery) {
     else if (battery <= 36) { status.majorLevel = 5; status.realmName = @"NGUYÊN ANH"; status.subRealm = (battery <= 29) ? @"Sơ Kỳ" : (battery <= 32) ? @"Trung Kỳ" : (battery <= 35) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
     else if (battery <= 48) { status.majorLevel = 6; status.realmName = @"HÓA THẦN"; status.subRealm = (battery <= 39) ? @"Sơ Kỳ" : (battery <= 42) ? @"Trung Kỳ" : (battery <= 47) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
     else if (battery <= 62) { status.majorLevel = 7; status.realmName = @"LUYỆN HƯ"; status.subRealm = (battery <= 52) ? @"Sơ Kỳ" : (battery <= 56) ? @"Trung Kỳ" : (battery <= 61) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
-    else if (battery <= 79) { status.majorLevel = 8; status.realmName = @"ĐẠI THỪA"; status.subRealm = (battery <= 66) ? quỹSơ: @"Sơ Kỳ" ; status.subRealm = (battery <= 66) ? @"Sơ Kỳ" : (battery <= 71) ? @"Trung Kỳ" : (battery <= 75) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
+    else if (battery <= 79) { status.majorLevel = 8; status.realmName = @"ĐẠI THỪA"; status.subRealm = (battery <= 66) ? @"Sơ Kỳ" : (battery <= 71) ? @"Trung Kỳ" : (battery <= 75) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
     else if (battery <= 94) { status.majorLevel = 9; status.realmName = @"ĐỘ KIẾP"; status.subRealm = (battery <= 83) ? @"Sơ Kỳ" : (battery <= 87) ? @"Trung Kỳ" : (battery <= 91) ? @"Hậu Kỳ" : @"Đỉnh Phong"; }
     else if (battery <= 99) { status.majorLevel = 10; status.realmName = @"ĐỘ KIẾP · THIÊN KIẾP"; status.subRealm = @"Thiên Lôi Giáng Lâm"; }
     else { status.majorLevel = 11; status.realmName = @"PHI THĂNG"; status.subRealm = @"Đại Đạo Viên Mãn"; }
@@ -39,13 +39,14 @@ CultivationStatus getCultivationStatus(int battery) {
 @property (nonatomic, strong) CAShapeLayer *daoMarkLayer; 
 @property (nonatomic, strong) CAShapeLayer *monkLayer; 
 @property (nonatomic, strong) CAShapeLayer *goldenCoreLayer; 
-@property (nonatomic, strong) CAShapeLayer *nascentSoulLayer; // Nguyên Anh tiểu nhân
-@property (nonatomic, strong) CAShapeLayer *dharmaIdolLayer;  // Pháp tướng Hóa Thần / Đại Thừa
+@property (nonatomic, strong) CAShapeLayer *nascentSoulLayer; 
+@property (nonatomic, strong) CAShapeLayer *dharmaIdolLayer;  
 @property (nonatomic, strong) CAShapeLayer *cloudLayer;
 @property (nonatomic, strong) CAShapeLayer *lightningLayer;
 @property (nonatomic, strong) CAShapeLayer *spaceFragmentsLayer; 
 @property (nonatomic, strong) UIView *lawsLayer; 
 @property (nonatomic, strong) UIView *ascensionContainer;
+@property (nonatomic, strong) UIView *ascensionArrayLayer; // Đã bổ sung đầy đủ
 @property (nonatomic, strong) CAShapeLayer *heavenlyGateLayer;
 @property (nonatomic, strong) CAShapeLayer *immortalBeamLayer;
 @property (nonatomic, strong) CAEmitterLayer *immortalQiEmitter;
@@ -87,19 +88,21 @@ CultivationStatus getCultivationStatus(int battery) {
         [self addSubview:self.arrayContainer];
         [self drawUltimateBaguaArray];
 
-        // Nguyên Anh & Pháp Tướng (Nằm sau nhân vật)
+        // Nguyên Anh (Tiểu nhân sau lưng)
         self.nascentSoulLayer = [self createMonkVectorPathWithSize:60];
         self.nascentSoulLayer.position = CGPointMake(centerX, centerY - 45);
         self.nascentSoulLayer.fillColor = [[UIColor whiteColor] colorWithAlphaComponent:0.3].CGColor;
         self.nascentSoulLayer.opacity = 0.0;
         [self.layer addSublayer:self.nascentSoulLayer];
 
+        // Pháp Tướng Hóa Thần / Đại Thừa
         self.dharmaIdolLayer = [self createMonkVectorPathWithSize:200];
         self.dharmaIdolLayer.position = CGPointMake(centerX, centerY - 20);
         self.dharmaIdolLayer.fillColor = [UIColor clearColor].CGColor;
         self.dharmaIdolLayer.opacity = 0.0; 
         [self.layer addSublayer:self.dharmaIdolLayer];
         
+        // Pháp tắc Đại Thừa
         self.lawsLayer = [[UIView alloc] initWithFrame:CGRectMake(centerX - 110, centerY - 110, 220, 220)];
         self.lawsLayer.alpha = 0.0;
         [self addSubview:self.lawsLayer];
@@ -111,7 +114,7 @@ CultivationStatus getCultivationStatus(int battery) {
         [self addSubview:self.ascensionContainer];
         [self drawAscensionSystem:CGPointMake(centerX, centerY)];
 
-        // Nhân vật chuẩn dáng (image_14)
+        // Nhân vật chính chuẩn dáng thanh thoát
         self.monkLayer = [self createMonkVectorPathWithSize:105];
         self.monkLayer.position = CGPointMake(centerX, centerY);
         self.monkLayer.fillColor = [UIColor blackColor].CGColor; 
@@ -120,7 +123,7 @@ CultivationStatus getCultivationStatus(int battery) {
         self.monkLayer.shadowOpacity = 1.0;
         [self.layer addSublayer:self.monkLayer];
 
-        // Kim Đan
+        // Kim Đan (Chỉ hiện ở Kim Đan cảnh)
         self.goldenCoreLayer = [CAShapeLayer layer];
         self.goldenCoreLayer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(-5, 0, 10, 10)].CGPath;
         self.goldenCoreLayer.fillColor = [UIColor colorWithRed:1.0 green:0.85 blue:0.1 alpha:1.0].CGColor;
@@ -176,13 +179,12 @@ CultivationStatus getCultivationStatus(int battery) {
     return self;
 }
 
-// Dáng người thon gọn, thanh thoát chuẩn image_14
 - (CAShapeLayer *)createMonkVectorPathWithSize:(CGFloat)size {
     CAShapeLayer *layer = [CAShapeLayer layer];
     UIBezierPath *path = [UIBezierPath bezierPath];
     CGFloat s = size / 100.0;
     
-    // Búi tóc
+    // Búi tóc nhỏ gọn
     [path addArcWithCenter:CGPointMake(0, -42*s) radius:4.5*s startAngle:0 endAngle:M_PI*2 clockwise:YES];
     // Đầu & cằm thon
     [path moveToPoint:CGPointMake(0, -38*s)];
@@ -260,7 +262,6 @@ CultivationStatus getCultivationStatus(int battery) {
     spinSlow.repeatCount = HUGE_VALF;
     [self.ascensionArrayLayer.layer addAnimation:spinSlow forKey:@"spinSlow"];
 
-    // Thiên Môn
     self.heavenlyGateLayer = [CAShapeLayer layer];
     UIBezierPath *gatePath = [UIBezierPath bezierPath];
     CGFloat gw = [UIScreen mainScreen].bounds.size.width;
@@ -278,7 +279,6 @@ CultivationStatus getCultivationStatus(int battery) {
     self.heavenlyGateLayer.shadowOpacity = 1.0;
     [self.ascensionContainer.layer addSublayer:self.heavenlyGateLayer];
 
-    // Tiên Quang
     self.immortalBeamLayer = [CAShapeLayer layer];
     UIBezierPath *beamPath = [UIBezierPath bezierPath];
     [beamPath moveToPoint:CGPointMake(gw/2 - 80, 100)]; 
@@ -427,7 +427,6 @@ CultivationStatus getCultivationStatus(int battery) {
     CGFloat w = [UIScreen mainScreen].bounds.size.width;
     CGFloat h = [UIScreen mainScreen].bounds.size.height;
     
-    // Tăng cường số lượng nhánh sét cho thêm lực
     [lightning moveToPoint:CGPointMake(w/2 + 20, 0)];
     [lightning addLineToPoint:CGPointMake(w/2 - 30, h/4)];
     [lightning addLineToPoint:CGPointMake(w/2 + 25, h/2.5)];
@@ -483,13 +482,11 @@ CultivationStatus getCultivationStatus(int battery) {
     [self.layer insertSublayer:self.qiEmitter below:self.arrayContainer.layer];
 }
 
-// --- LOGIC HIỆU ỨNG CHUẨN XÁC TỪNG CẢNH GIỚI ---
 - (void)applyRealmEffects:(int)majorLevel {
     UIColor *auraColor = [UIColor clearColor];
     float qiBirthRate = 0;
     NSString *absorbText = @"";
     
-    // Tắt toàn bộ trạng thái đặc biệt
     self.goldenCoreLayer.opacity = 0.0;
     self.nascentSoulLayer.opacity = 0.0;
     self.dharmaIdolLayer.opacity = 0.0;
@@ -510,37 +507,37 @@ CultivationStatus getCultivationStatus(int battery) {
     if (majorLevel == 0) {
         absorbText = @"Thể chất phàm nhân, chưa thể hấp thu.";
     }
-    else if (majorLevel == 1) { // PHÀM NHÂN
+    else if (majorLevel == 1) { 
         auraColor = [UIColor lightGrayColor];
         qiBirthRate = 10.0; 
         self.arrayContainer.alpha = 0.3;
         absorbText = @"Tụ khí tẩy tủy, bắt đầu cảm nhận linh khí.";
     } 
-    else if (majorLevel == 2) { // LUYỆN KHÍ
+    else if (majorLevel == 2) { 
         auraColor = [UIColor colorWithRed:0.6 green:0.9 blue:1.0 alpha:1.0];
         qiBirthRate = 35.0;
         self.arrayContainer.alpha = 0.7;
         absorbText = @"Linh khí vận chuyển quanh thân thể.";
     } 
-    else if (majorLevel == 3) { // TRÚC CƠ
+    else if (majorLevel == 3) { 
         auraColor = [UIColor colorWithRed:0.3 green:0.8 blue:1.0 alpha:1.0];
         qiBirthRate = 70.0;
         self.daoMarkLayer.opacity = 1.0; 
         absorbText = @"Đạo cơ đúc thành, linh lực ngưng thực.";
     } 
-    else if (majorLevel == 4) { // KIM ĐAN
+    else if (majorLevel == 4) { 
         auraColor = [UIColor colorWithRed:1.0 green:0.85 blue:0.1 alpha:1.0];
         qiBirthRate = 100.0;
-        self.goldenCoreLayer.opacity = 1.0; // Chỉ hiện Kim Đan
+        self.goldenCoreLayer.opacity = 1.0; 
         absorbText = @"Kết thành Kim Đan, thọ nguyên tăng mạnh.";
     } 
-    else if (majorLevel == 5) { // NGUYÊN ANH (Chỉ hiện Tiểu Nhân, KHÔNG CÓ KIM ĐAN)
+    else if (majorLevel == 5) { 
         auraColor = [UIColor colorWithRed:0.8 green:0.3 blue:1.0 alpha:1.0];
         qiBirthRate = 150.0;
-        self.nascentSoulLayer.opacity = 0.8; // Hiện tiểu nhân phía sau
+        self.nascentSoulLayer.opacity = 0.8; 
         absorbText = @"Đan vỡ sinh Anh, thần hồn cường đại.";
     } 
-    else if (majorLevel == 6) { // HÓA THẦN
+    else if (majorLevel == 6) { 
         auraColor = [UIColor colorWithRed:1.0 green:0.2 blue:0.8 alpha:1.0];
         qiBirthRate = 200.0;
         self.dharmaIdolLayer.fillColor = [UIColor clearColor].CGColor;
@@ -550,7 +547,7 @@ CultivationStatus getCultivationStatus(int battery) {
         self.dharmaIdolLayer.transform = CATransform3DMakeScale(1.8, 1.8, 1.0); 
         absorbText = @"Thần thức bao trùm, thiên địa giao cảm.";
     } 
-    else if (majorLevel == 7) { // LUYỆN HƯ (Không gian vỡ)
+    else if (majorLevel == 7) { 
         auraColor = [UIColor colorWithRed:0.6 green:0.0 blue:0.8 alpha:1.0]; 
         qiBirthRate = 250.0;
         self.backgroundLayer.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.3]; 
@@ -558,14 +555,14 @@ CultivationStatus getCultivationStatus(int battery) {
         cell.yAcceleration = 80.0;
         absorbText = @"Bất phàm uy áp, hư không phá toái.";
     } 
-    else if (majorLevel == 8) { // ĐẠI THỪA
+    else if (majorLevel == 8) { 
         auraColor = [UIColor redColor]; 
         qiBirthRate = 350.0;
         self.arrayContainer.transform = CGAffineTransformMakeScale(1.2, 1.2); 
-        self.lawsLayer.alpha = 1.0; // Pháp tắc xoay
+        self.lawsLayer.alpha = 1.0; 
         absorbText = @"Một bước nghênh thiên kiếp, một bước hóa tro.";
     } 
-    else if (majorLevel >= 9 && majorLevel <= 10) { // ĐỘ KIẾP & THIÊN KIẾP
+    else if (majorLevel >= 9 && majorLevel <= 10) { 
         auraColor = [UIColor cyanColor];
         qiBirthRate = 450.0; 
         self.cloudLayer.opacity = 1.0; 
@@ -586,7 +583,7 @@ CultivationStatus getCultivationStatus(int battery) {
         storm.repeatCount = HUGE_VALF;
         [self.lightningLayer addAnimation:storm forKey:@"storm"];
     }
-    else if (majorLevel == 11) { // PHI THĂNG
+    else if (majorLevel == 11) { 
         auraColor = [UIColor whiteColor];
         qiBirthRate = 0.0;
         self.arrayContainer.alpha = 0.0;
