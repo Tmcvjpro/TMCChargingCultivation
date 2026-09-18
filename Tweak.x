@@ -37,7 +37,7 @@ CultivationStatus getCultivationStatus(int battery) {
 @property (nonatomic, strong) UIView *spinLayerCCW;
 @property (nonatomic, strong) CAShapeLayer *daoMarkLayer;
 @property (nonatomic, strong) CAShapeLayer *monkLayer;
-@property (nonatomic, strong) CAShapeLayer *monkHandsLayer;
+@property (nonatomic, strong) CAShapeLayer *robeLinesLayer;
 @property (nonatomic, strong) CAShapeLayer *goldenCoreLayer;
 @property (nonatomic, strong) CAShapeLayer *nascentSoulLayer;
 @property (nonatomic, strong) CAShapeLayer *dharmaIdolLayer;
@@ -59,9 +59,9 @@ CultivationStatus getCultivationStatus(int battery) {
 @property (nonatomic, strong) NSArray *testMilestones;
 @property (nonatomic, assign) int testIndex;
 
-// ✅ Khai báo trước các method để tránh "no visible @interface"
+// Khai báo trước method
 - (CAShapeLayer *)createSlimMonkPathWithSize:(CGFloat)size;
-- (UIBezierPath *)createHandsPathWithSize:(CGFloat)size;
+- (UIBezierPath *)createRobeLinesPathWithSize:(CGFloat)size;
 - (void)drawAscensionSystem:(CGPoint)center;
 - (void)drawUltimateBaguaArray;
 - (void)drawClouds;
@@ -83,6 +83,7 @@ CultivationStatus getCultivationStatus(int battery) {
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         self.userInteractionEnabled = YES;
+
         CGFloat centerX = frame.size.width / 2.0;
         CGFloat centerY = frame.size.height / 2.0 - 20;
 
@@ -102,12 +103,14 @@ CultivationStatus getCultivationStatus(int battery) {
         [self addSubview:self.arrayContainer];
         [self drawUltimateBaguaArray];
 
-        self.nascentSoulLayer = [self createSlimMonkPathWithSize:55];
-        self.nascentSoulLayer.position = CGPointMake(centerX, centerY - 50);
+        // Nguyên Anh (bóng trắng mờ phía sau)
+        self.nascentSoulLayer = [self createSlimMonkPathWithSize:70];
+        self.nascentSoulLayer.position = CGPointMake(centerX, centerY - 60);
         self.nascentSoulLayer.fillColor = [[UIColor whiteColor] colorWithAlphaComponent:0.4].CGColor;
         self.nascentSoulLayer.opacity = 0.0;
         [self.layer addSublayer:self.nascentSoulLayer];
 
+        // Pháp Tướng
         self.dharmaIdolLayer = [self createSlimMonkPathWithSize:200];
         self.dharmaIdolLayer.position = CGPointMake(centerX, centerY - 20);
         self.dharmaIdolLayer.fillColor = [UIColor clearColor].CGColor;
@@ -124,25 +127,37 @@ CultivationStatus getCultivationStatus(int battery) {
         [self addSubview:self.ascensionContainer];
         [self drawAscensionSystem:CGPointMake(centerX, centerY)];
 
-        // === TU SĨ ===
-        self.monkHandsLayer = [CAShapeLayer layer];
-        self.monkHandsLayer.path = [self createHandsPathWithSize:105].CGPath;
-        self.monkHandsLayer.position = CGPointMake(centerX, centerY);
-        self.monkHandsLayer.fillColor = [[UIColor whiteColor] colorWithAlphaComponent:0.55].CGColor;
-        [self.layer addSublayer:self.monkHandsLayer];
-
-        self.monkLayer = [self createSlimMonkPathWithSize:105];
+        // ============ TU SĨ ============
+        // 1. Thân chính — đen tuyền + viền trắng + bàn tay khoét lỗ
+        self.monkLayer = [self createSlimMonkPathWithSize:150];
         self.monkLayer.position = CGPointMake(centerX, centerY);
         self.monkLayer.fillColor = [UIColor blackColor].CGColor;
+        self.monkLayer.strokeColor = [[UIColor whiteColor] colorWithAlphaComponent:0.85].CGColor;
+        self.monkLayer.lineWidth = 1.5;
+        self.monkLayer.lineJoin = kCALineJoinRound;
         self.monkLayer.shadowColor = [UIColor cyanColor].CGColor;
         self.monkLayer.shadowRadius = 12.0;
         self.monkLayer.shadowOpacity = 1.0;
         [self.layer addSublayer:self.monkLayer];
 
+        // 2. Nếp áo (cổ chữ V, nếp tay, nếp đầu gối) — nét trắng
+        self.robeLinesLayer = [CAShapeLayer layer];
+        self.robeLinesLayer.path = [self createRobeLinesPathWithSize:150].CGPath;
+        self.robeLinesLayer.position = CGPointMake(centerX, centerY);
+        self.robeLinesLayer.fillColor = [UIColor clearColor].CGColor;
+        self.robeLinesLayer.strokeColor = [[UIColor whiteColor] colorWithAlphaComponent:0.9].CGColor;
+        self.robeLinesLayer.lineWidth = 1.2;
+        self.robeLinesLayer.lineCap = kCALineCapRound;
+        self.robeLinesLayer.shadowColor = [UIColor whiteColor].CGColor;
+        self.robeLinesLayer.shadowRadius = 3.0;
+        self.robeLinesLayer.shadowOpacity = 0.5;
+        [self.layer addSublayer:self.robeLinesLayer];
+
+        // Kim Đan
         self.goldenCoreLayer = [CAShapeLayer layer];
         self.goldenCoreLayer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(-6, 0, 12, 12)].CGPath;
         self.goldenCoreLayer.fillColor = [UIColor yellowColor].CGColor;
-        self.goldenCoreLayer.position = CGPointMake(centerX, centerY + 10);
+        self.goldenCoreLayer.position = CGPointMake(centerX, centerY + 15);
         self.goldenCoreLayer.shadowColor = [UIColor yellowColor].CGColor;
         self.goldenCoreLayer.shadowRadius = 12.0;
         self.goldenCoreLayer.shadowOpacity = 1.0;
@@ -151,7 +166,7 @@ CultivationStatus getCultivationStatus(int battery) {
 
         [self setupQiEmitter:CGPointMake(centerX, centerY)];
 
-        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 160, centerY + 130, 320, 50)];
+        self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 160, centerY + 140, 320, 50)];
         self.statusLabel.numberOfLines = 2;
         self.statusLabel.textAlignment = NSTextAlignmentCenter;
         self.statusLabel.textColor = [UIColor whiteColor];
@@ -160,7 +175,7 @@ CultivationStatus getCultivationStatus(int battery) {
         self.statusLabel.layer.shadowOpacity = 1.0;
         [self addSubview:self.statusLabel];
 
-        self.absorbingLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 150, centerY + 185, 300, 20)];
+        self.absorbingLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerX - 150, centerY + 195, 300, 20)];
         self.absorbingLabel.text = @"Đang hội tụ linh khí...";
         self.absorbingLabel.textAlignment = NSTextAlignmentCenter;
         self.absorbingLabel.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8];
@@ -195,7 +210,7 @@ CultivationStatus getCultivationStatus(int battery) {
 }
 
 // ==========================================
-// VẼ SILHOUETTE TU SĨ
+// VẼ SILHOUETTE TU SĨ — VIỀN TRẮNG + KHOÉT TAY
 // ==========================================
 - (CAShapeLayer *)createSlimMonkPathWithSize:(CGFloat)size {
     CAShapeLayer *layer = [CAShapeLayer layer];
@@ -204,89 +219,156 @@ CultivationStatus getCultivationStatus(int battery) {
 
     [path moveToPoint:CGPointMake(0, -50*s)];
 
-    [path addCurveToPoint:CGPointMake(-7*s, -42*s)
-            controlPoint1:CGPointMake(-8*s, -50*s)
-            controlPoint2:CGPointMake(-9*s, -46*s)];
-    [path addCurveToPoint:CGPointMake(-12*s, -33*s)
-            controlPoint1:CGPointMake(-10*s, -40*s)
-            controlPoint2:CGPointMake(-12*s, -37*s)];
-    [path addCurveToPoint:CGPointMake(-7*s, -21*s)
-            controlPoint1:CGPointMake(-12*s, -28*s)
-            controlPoint2:CGPointMake(-11*s, -23*s)];
-    [path addCurveToPoint:CGPointMake(-9*s, -16*s)
-            controlPoint1:CGPointMake(-6*s, -20*s)
-            controlPoint2:CGPointMake(-8*s, -17*s)];
-    [path addCurveToPoint:CGPointMake(-28*s, -7*s)
-            controlPoint1:CGPointMake(-17*s, -13*s)
-            controlPoint2:CGPointMake(-24*s, -9*s)];
-    [path addCurveToPoint:CGPointMake(-34*s, 5*s)
-            controlPoint1:CGPointMake(-33*s, -2*s)
-            controlPoint2:CGPointMake(-35*s, 1*s)];
-    [path addCurveToPoint:CGPointMake(-41*s, 22*s)
-            controlPoint1:CGPointMake(-35*s, 12*s)
-            controlPoint2:CGPointMake(-39*s, 17*s)];
-    [path addCurveToPoint:CGPointMake(-48*s, 36*s)
-            controlPoint1:CGPointMake(-44*s, 27*s)
-            controlPoint2:CGPointMake(-49*s, 32*s)];
-    [path addCurveToPoint:CGPointMake(0, 48*s)
-            controlPoint1:CGPointMake(-44*s, 45*s)
-            controlPoint2:CGPointMake(-22*s, 49*s)];
+    // ==================== NỬA TRÁI ====================
+    [path addCurveToPoint:CGPointMake(-7*s, -40*s)
+            controlPoint1:CGPointMake(-7*s, -49*s)
+            controlPoint2:CGPointMake(-9*s, -45*s)];
 
-    [path addCurveToPoint:CGPointMake(48*s, 36*s)
-            controlPoint1:CGPointMake(22*s, 49*s)
-            controlPoint2:CGPointMake(44*s, 45*s)];
-    [path addCurveToPoint:CGPointMake(41*s, 22*s)
-            controlPoint1:CGPointMake(49*s, 32*s)
-            controlPoint2:CGPointMake(44*s, 27*s)];
-    [path addCurveToPoint:CGPointMake(34*s, 5*s)
-            controlPoint1:CGPointMake(39*s, 17*s)
-            controlPoint2:CGPointMake(35*s, 12*s)];
-    [path addCurveToPoint:CGPointMake(28*s, -7*s)
-            controlPoint1:CGPointMake(35*s, 1*s)
-            controlPoint2:CGPointMake(33*s, -2*s)];
-    [path addCurveToPoint:CGPointMake(9*s, -16*s)
-            controlPoint1:CGPointMake(24*s, -9*s)
-            controlPoint2:CGPointMake(17*s, -13*s)];
-    [path addCurveToPoint:CGPointMake(7*s, -21*s)
-            controlPoint1:CGPointMake(8*s, -17*s)
-            controlPoint2:CGPointMake(6*s, -20*s)];
-    [path addCurveToPoint:CGPointMake(12*s, -33*s)
-            controlPoint1:CGPointMake(11*s, -23*s)
-            controlPoint2:CGPointMake(12*s, -28*s)];
-    [path addCurveToPoint:CGPointMake(7*s, -42*s)
-            controlPoint1:CGPointMake(12*s, -37*s)
-            controlPoint2:CGPointMake(10*s, -40*s)];
+    [path addCurveToPoint:CGPointMake(-13*s, -28*s)
+            controlPoint1:CGPointMake(-10*s, -38*s)
+            controlPoint2:CGPointMake(-13*s, -33*s)];
+
+    [path addCurveToPoint:CGPointMake(-8*s, -17*s)
+            controlPoint1:CGPointMake(-13*s, -23*s)
+            controlPoint2:CGPointMake(-10*s, -19*s)];
+
+    [path addCurveToPoint:CGPointMake(-9*s, -13*s)
+            controlPoint1:CGPointMake(-6*s, -16*s)
+            controlPoint2:CGPointMake(-8*s, -14*s)];
+
+    [path addCurveToPoint:CGPointMake(-24*s, -5*s)
+            controlPoint1:CGPointMake(-13*s, -11*s)
+            controlPoint2:CGPointMake(-19*s, -7*s)];
+
+    [path addCurveToPoint:CGPointMake(-28*s, 10*s)
+            controlPoint1:CGPointMake(-28*s, 1*s)
+            controlPoint2:CGPointMake(-30*s, 5*s)];
+
+    [path addCurveToPoint:CGPointMake(-27*s, 20*s)
+            controlPoint1:CGPointMake(-29*s, 14*s)
+            controlPoint2:CGPointMake(-29*s, 18*s)];
+
+    [path addCurveToPoint:CGPointMake(-14*s, 24*s)
+            controlPoint1:CGPointMake(-23*s, 24*s)
+            controlPoint2:CGPointMake(-18*s, 25*s)];
+
+    [path addCurveToPoint:CGPointMake(-8*s, 19*s)
+            controlPoint1:CGPointMake(-11*s, 23*s)
+            controlPoint2:CGPointMake(-9*s, 21*s)];
+
+    [path addCurveToPoint:CGPointMake(-11*s, 3*s)
+            controlPoint1:CGPointMake(-7*s, 14*s)
+            controlPoint2:CGPointMake(-9*s, 8*s)];
+
+    [path addCurveToPoint:CGPointMake(-14*s, -3*s)
+            controlPoint1:CGPointMake(-12*s, 0*s)
+            controlPoint2:CGPointMake(-13*s, -2*s)];
+
+    [path addCurveToPoint:CGPointMake(-19*s, 12*s)
+            controlPoint1:CGPointMake(-15*s, 3*s)
+            controlPoint2:CGPointMake(-17*s, 7*s)];
+
+    [path addCurveToPoint:CGPointMake(-26*s, 24*s)
+            controlPoint1:CGPointMake(-21*s, 17*s)
+            controlPoint2:CGPointMake(-24*s, 20*s)];
+
+    [path addCurveToPoint:CGPointMake(-44*s, 36*s)
+            controlPoint1:CGPointMake(-31*s, 28*s)
+            controlPoint2:CGPointMake(-42*s, 31*s)];
+
+    [path addCurveToPoint:CGPointMake(0, 44*s)
+            controlPoint1:CGPointMake(-38*s, 42*s)
+            controlPoint2:CGPointMake(-20*s, 45*s)];
+
+    // ==================== NỬA PHẢI (mirror) ====================
+    [path addCurveToPoint:CGPointMake(44*s, 36*s)
+            controlPoint1:CGPointMake(20*s, 45*s)
+            controlPoint2:CGPointMake(38*s, 42*s)];
+
+    [path addCurveToPoint:CGPointMake(26*s, 24*s)
+            controlPoint1:CGPointMake(42*s, 31*s)
+            controlPoint2:CGPointMake(31*s, 28*s)];
+
+    [path addCurveToPoint:CGPointMake(19*s, 12*s)
+            controlPoint1:CGPointMake(24*s, 20*s)
+            controlPoint2:CGPointMake(21*s, 17*s)];
+
+    [path addCurveToPoint:CGPointMake(14*s, -3*s)
+            controlPoint1:CGPointMake(17*s, 7*s)
+            controlPoint2:CGPointMake(15*s, 3*s)];
+
+    [path addCurveToPoint:CGPointMake(11*s, 3*s)
+            controlPoint1:CGPointMake(13*s, -2*s)
+            controlPoint2:CGPointMake(12*s, 0*s)];
+
+    [path addCurveToPoint:CGPointMake(8*s, 19*s)
+            controlPoint1:CGPointMake(9*s, 8*s)
+            controlPoint2:CGPointMake(7*s, 14*s)];
+
+    [path addCurveToPoint:CGPointMake(14*s, 24*s)
+            controlPoint1:CGPointMake(9*s, 21*s)
+            controlPoint2:CGPointMake(11*s, 23*s)];
+
+    [path addCurveToPoint:CGPointMake(27*s, 20*s)
+            controlPoint1:CGPointMake(18*s, 25*s)
+            controlPoint2:CGPointMake(23*s, 24*s)];
+
+    [path addCurveToPoint:CGPointMake(28*s, 10*s)
+            controlPoint1:CGPointMake(29*s, 18*s)
+            controlPoint2:CGPointMake(29*s, 14*s)];
+
+    [path addCurveToPoint:CGPointMake(24*s, -5*s)
+            controlPoint1:CGPointMake(30*s, 5*s)
+            controlPoint2:CGPointMake(28*s, 1*s)];
+
+    [path addCurveToPoint:CGPointMake(9*s, -13*s)
+            controlPoint1:CGPointMake(19*s, -7*s)
+            controlPoint2:CGPointMake(13*s, -11*s)];
+
+    [path addCurveToPoint:CGPointMake(8*s, -17*s)
+            controlPoint1:CGPointMake(8*s, -14*s)
+            controlPoint2:CGPointMake(6*s, -16*s)];
+
+    [path addCurveToPoint:CGPointMake(13*s, -28*s)
+            controlPoint1:CGPointMake(10*s, -19*s)
+            controlPoint2:CGPointMake(13*s, -23*s)];
+
+    [path addCurveToPoint:CGPointMake(7*s, -40*s)
+            controlPoint1:CGPointMake(13*s, -33*s)
+            controlPoint2:CGPointMake(10*s, -38*s)];
+
     [path addCurveToPoint:CGPointMake(0, -50*s)
-            controlPoint1:CGPointMake(9*s, -46*s)
-            controlPoint2:CGPointMake(8*s, -50*s)];
+            controlPoint1:CGPointMake(9*s, -45*s)
+            controlPoint2:CGPointMake(7*s, -49*s)];
 
     [path closePath];
 
+    // ============ KHOÉT LỖ 2 BÀN TAY NGỬA ============
     UIBezierPath *handL = [UIBezierPath bezierPath];
-    [handL moveToPoint:CGPointMake(-29*s, 8*s)];
-    [handL addCurveToPoint:CGPointMake(-19*s, 21*s)
-             controlPoint1:CGPointMake(-33*s, 15*s)
-             controlPoint2:CGPointMake(-25*s, 23*s)];
-    [handL addCurveToPoint:CGPointMake(-13*s, 15*s)
-             controlPoint1:CGPointMake(-15*s, 20*s)
-             controlPoint2:CGPointMake(-12*s, 18*s)];
-    [handL addCurveToPoint:CGPointMake(-23*s, 7*s)
-             controlPoint1:CGPointMake(-16*s, 11*s)
-             controlPoint2:CGPointMake(-20*s, 7*s)];
+    [handL moveToPoint:CGPointMake(-14*s, 12*s)];
+    [handL addCurveToPoint:CGPointMake(-9*s, 22*s)
+             controlPoint1:CGPointMake(-15*s, 16*s)
+             controlPoint2:CGPointMake(-11*s, 22*s)];
+    [handL addCurveToPoint:CGPointMake(-7*s, 15*s)
+             controlPoint1:CGPointMake(-7*s, 20*s)
+             controlPoint2:CGPointMake(-6*s, 18*s)];
+    [handL addCurveToPoint:CGPointMake(-11*s, 10*s)
+             controlPoint1:CGPointMake(-8*s, 12*s)
+             controlPoint2:CGPointMake(-9*s, 10*s)];
     [handL closePath];
     [path appendPath:handL];
 
     UIBezierPath *handR = [UIBezierPath bezierPath];
-    [handR moveToPoint:CGPointMake(29*s, 8*s)];
-    [handR addCurveToPoint:CGPointMake(19*s, 21*s)
-             controlPoint1:CGPointMake(33*s, 15*s)
-             controlPoint2:CGPointMake(25*s, 23*s)];
-    [handR addCurveToPoint:CGPointMake(13*s, 15*s)
-             controlPoint1:CGPointMake(15*s, 20*s)
-             controlPoint2:CGPointMake(12*s, 18*s)];
-    [handR addCurveToPoint:CGPointMake(23*s, 7*s)
-             controlPoint1:CGPointMake(16*s, 11*s)
-             controlPoint2:CGPointMake(20*s, 7*s)];
+    [handR moveToPoint:CGPointMake(14*s, 12*s)];
+    [handR addCurveToPoint:CGPointMake(9*s, 22*s)
+             controlPoint1:CGPointMake(15*s, 16*s)
+             controlPoint2:CGPointMake(11*s, 22*s)];
+    [handR addCurveToPoint:CGPointMake(7*s, 15*s)
+             controlPoint1:CGPointMake(7*s, 20*s)
+             controlPoint2:CGPointMake(6*s, 18*s)];
+    [handR addCurveToPoint:CGPointMake(11*s, 10*s)
+             controlPoint1:CGPointMake(8*s, 12*s)
+             controlPoint2:CGPointMake(9*s, 10*s)];
     [handR closePath];
     [path appendPath:handR];
 
@@ -295,37 +377,57 @@ CultivationStatus getCultivationStatus(int battery) {
     return layer;
 }
 
-- (UIBezierPath *)createHandsPathWithSize:(CGFloat)size {
+// ==========================================
+// NẾP ÁO — NÉT TRẮNG BÊN TRONG SILHOUETTE
+// ==========================================
+- (UIBezierPath *)createRobeLinesPathWithSize:(CGFloat)size {
     UIBezierPath *path = [UIBezierPath bezierPath];
     CGFloat s = size / 100.0;
 
-    UIBezierPath *handL = [UIBezierPath bezierPath];
-    [handL moveToPoint:CGPointMake(-29*s, 8*s)];
-    [handL addCurveToPoint:CGPointMake(-19*s, 21*s)
-             controlPoint1:CGPointMake(-33*s, 15*s)
-             controlPoint2:CGPointMake(-25*s, 23*s)];
-    [handL addCurveToPoint:CGPointMake(-13*s, 15*s)
-             controlPoint1:CGPointMake(-15*s, 20*s)
-             controlPoint2:CGPointMake(-12*s, 18*s)];
-    [handL addCurveToPoint:CGPointMake(-23*s, 7*s)
-             controlPoint1:CGPointMake(-16*s, 11*s)
-             controlPoint2:CGPointMake(-20*s, 7*s)];
-    [handL closePath];
-    [path appendPath:handL];
+    // ============ CỔ ÁO CHỮ V ============
+    [path moveToPoint:CGPointMake(-9*s, -13*s)];
+    [path addQuadCurveToPoint:CGPointMake(-3*s, -1*s)
+                  controlPoint:CGPointMake(-7*s, -7*s)];
 
-    UIBezierPath *handR = [UIBezierPath bezierPath];
-    [handR moveToPoint:CGPointMake(29*s, 8*s)];
-    [handR addCurveToPoint:CGPointMake(19*s, 21*s)
-             controlPoint1:CGPointMake(33*s, 15*s)
-             controlPoint2:CGPointMake(25*s, 23*s)];
-    [handR addCurveToPoint:CGPointMake(13*s, 15*s)
-             controlPoint1:CGPointMake(15*s, 20*s)
-             controlPoint2:CGPointMake(12*s, 18*s)];
-    [handR addCurveToPoint:CGPointMake(23*s, 7*s)
-             controlPoint1:CGPointMake(16*s, 11*s)
-             controlPoint2:CGPointMake(20*s, 7*s)];
-    [handR closePath];
-    [path appendPath:handR];
+    [path moveToPoint:CGPointMake(9*s, -13*s)];
+    [path addQuadCurveToPoint:CGPointMake(3*s, -1*s)
+                  controlPoint:CGPointMake(7*s, -7*s)];
+
+    [path moveToPoint:CGPointMake(-3*s, -1*s)];
+    [path addLineToPoint:CGPointMake(3*s, -1*s)];
+
+    // ============ NẾP TAY ÁO TRÁI ============
+    [path moveToPoint:CGPointMake(-22*s, -3*s)];
+    [path addQuadCurveToPoint:CGPointMake(-24*s, 20*s)
+                  controlPoint:CGPointMake(-26*s, 8*s)];
+
+    [path moveToPoint:CGPointMake(-14*s, 3*s)];
+    [path addQuadCurveToPoint:CGPointMake(-11*s, 18*s)
+                  controlPoint:CGPointMake(-13*s, 10*s)];
+
+    // ============ NẾP TAY ÁO PHẢI ============
+    [path moveToPoint:CGPointMake(22*s, -3*s)];
+    [path addQuadCurveToPoint:CGPointMake(24*s, 20*s)
+                  controlPoint:CGPointMake(26*s, 8*s)];
+
+    [path moveToPoint:CGPointMake(14*s, 3*s)];
+    [path addQuadCurveToPoint:CGPointMake(11*s, 18*s)
+                  controlPoint:CGPointMake(13*s, 10*s)];
+
+    // ============ NẾP ĐẦU GỐI TRÁI ============
+    [path moveToPoint:CGPointMake(-22*s, 22*s)];
+    [path addQuadCurveToPoint:CGPointMake(-38*s, 33*s)
+                  controlPoint:CGPointMake(-32*s, 24*s)];
+
+    // ============ NẾP ĐẦU GỐI PHẢI ============
+    [path moveToPoint:CGPointMake(22*s, 22*s)];
+    [path addQuadCurveToPoint:CGPointMake(38*s, 33*s)
+                  controlPoint:CGPointMake(32*s, 24*s)];
+
+    // ============ NẾP GẤU ÁO DƯỚI NGỰC ============
+    [path moveToPoint:CGPointMake(-13*s, 5*s)];
+    [path addQuadCurveToPoint:CGPointMake(13*s, 5*s)
+                  controlPoint:CGPointMake(0, 8*s)];
 
     return path;
 }
@@ -585,8 +687,8 @@ CultivationStatus getCultivationStatus(int battery) {
     [self.spaceFragmentsLayer removeAllAnimations];
     self.arrayContainer.transform = CGAffineTransformIdentity;
     self.arrayContainer.alpha = 1.0;
-    self.monkHandsLayer.fillColor = [[UIColor whiteColor] colorWithAlphaComponent:0.55].CGColor;
 
+    // Reset emitter về trạng thái gốc
     CGFloat radius = MAX([UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height) + 50;
     CGPoint baseCenter = CGPointMake(self.bounds.size.width / 2.0, self.bounds.size.height / 2.0 - 20);
     self.qiEmitter.emitterPosition = baseCenter;
@@ -683,7 +785,10 @@ CultivationStatus getCultivationStatus(int battery) {
         qiBirthRate = 30.0;
         self.arrayContainer.alpha = 0.0;
         self.ascensionContainer.alpha = 1.0;
-        self.monkHandsLayer.fillColor = [[UIColor colorWithRed:1.0 green:0.9 blue:0.6 alpha:0.8] CGColor];
+
+        // Đổi viền áo sang màu vàng tiên khi phi thăng
+        self.monkLayer.strokeColor = [[UIColor colorWithRed:1.0 green:0.9 blue:0.6 alpha:1.0] CGColor];
+        self.robeLinesLayer.strokeColor = [[UIColor colorWithRed:1.0 green:0.9 blue:0.6 alpha:0.9] CGColor];
 
         cell.velocity = 50.0;
         cell.yAcceleration = -40.0;
@@ -692,6 +797,12 @@ CultivationStatus getCultivationStatus(int battery) {
         self.qiEmitter.emitterShape = kCAEmitterLayerRectangle;
 
         absorbText = @"Bạch nhật phi thăng, vị liệt tiên ban.";
+    }
+
+    // Reset viền áo về trắng nếu không phải phi thăng
+    if (majorLevel != 11) {
+        self.monkLayer.strokeColor = [[UIColor whiteColor] colorWithAlphaComponent:0.85].CGColor;
+        self.robeLinesLayer.strokeColor = [[UIColor whiteColor] colorWithAlphaComponent:0.9].CGColor;
     }
 
     [CATransaction commit];
@@ -717,6 +828,9 @@ CultivationStatus getCultivationStatus(int battery) {
     self.qiEmitter.emitterCells = @[cell];
 }
 
+// ==========================================
+// ĐỘT PHÁ
+// ==========================================
 - (void)processBreakthroughFrom:(CultivationStatus)oldStatus to:(CultivationStatus)newStatus {
     self.isBreakingThrough = YES;
     self.statusLabel.text = @"— ĐỘT PHÁ —";
@@ -780,6 +894,9 @@ CultivationStatus getCultivationStatus(int battery) {
     }];
 }
 
+// ==========================================
+// THOÁI CẢNH GIỚI
+// ==========================================
 - (void)processRealmDropFrom:(CultivationStatus)oldStatus to:(CultivationStatus)newStatus {
     self.isBreakingThrough = YES;
     self.statusLabel.text = @"— THOÁI CẢNH GIỚI —";
@@ -791,13 +908,13 @@ CultivationStatus getCultivationStatus(int battery) {
     [UIView animateWithDuration:0.9 animations:^{
         self.arrayContainer.transform = CGAffineTransformMakeScale(0.85, 0.85);
         self.monkLayer.opacity = 0.35;
-        self.monkHandsLayer.opacity = 0.35;
+        self.robeLinesLayer.opacity = 0.35;
     } completion:^(BOOL finished) {
         [self applyRealmEffects:newStatus.majorLevel];
         [UIView animateWithDuration:0.7 animations:^{
             self.arrayContainer.transform = CGAffineTransformIdentity;
             self.monkLayer.opacity = 1.0;
-            self.monkHandsLayer.opacity = 1.0;
+            self.robeLinesLayer.opacity = 1.0;
         } completion:^(BOOL finished) {
             self.statusLabel.textColor = [UIColor whiteColor];
             self.statusLabel.text = newStatus.subRealm.length > 0 ? [NSString stringWithFormat:@"%@\n· %@ ·", newStatus.realmName, newStatus.subRealm] : newStatus.realmName;
@@ -808,6 +925,7 @@ CultivationStatus getCultivationStatus(int battery) {
 
 - (void)handleTestTap {
     if (self.isBreakingThrough) return;
+    if (!self.window) return;
     int fakeBattery = [self.testMilestones[self.testIndex] intValue];
     self.lastBatteryLevel = fakeBattery - 1;
     [self updateTuVi:fakeBattery];
@@ -852,16 +970,28 @@ CultivationStatus getCultivationStatus(int battery) {
     self.lastBatteryLevel = currentBattery;
 }
 
+// ==========================================
+// FIX TOUCH — VIEW "VÔ HÌNH", CHỈ NÚT TEST NHẬN
+// ==========================================
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+    CGPoint p = [self.testButton convertPoint:point fromView:self];
+    return [self.testButton pointInside:p withEvent:event];
+}
+
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-    UIView *hit = [super hitTest:point withEvent:event];
-    if (hit == self.testButton) return hit;
-    if (hit == self) return nil;
-    return hit;
+    if ([self pointInside:point withEvent:event]) {
+        return self.testButton;
+    }
+    return nil;
 }
 
 @end
 
+// ==========================================
+// GLOBAL VIEW
+// ==========================================
 static TMCCultivationView *cultivationView = nil;
+static NSInteger const kTMCCultivationTag = 999999;
 
 %hook CSCoverSheetViewController
 
@@ -879,13 +1009,18 @@ static TMCCultivationView *cultivationView = nil;
 
     dispatch_async(dispatch_get_main_queue(), ^{
         UIDevice *d = [UIDevice currentDevice];
-        if (d.batteryState == UIDeviceBatteryStateCharging || d.batteryState == UIDeviceBatteryStateFull) {
-            if (!cultivationView) {
-                cultivationView = [[TMCCultivationView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-                [self.view addSubview:cultivationView];
-                [self.view bringSubviewToFront:cultivationView];
-                [cultivationView updateTuVi:(int)(d.batteryLevel * 100)];
-            }
+        if (d.batteryState == UIDeviceBatteryStateCharging ||
+            d.batteryState == UIDeviceBatteryStateFull) {
+
+            // Check trùng bằng tag
+            UIView *existing = [self.view viewWithTag:kTMCCultivationTag];
+            if (existing) return;
+            if (cultivationView) return;
+
+            cultivationView = [[TMCCultivationView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+            cultivationView.tag = kTMCCultivationTag;
+            [self.view addSubview:cultivationView];
+            [cultivationView updateTuVi:(int)(d.batteryLevel * 100)];
         }
     });
 }
@@ -893,10 +1028,10 @@ static TMCCultivationView *cultivationView = nil;
 - (void)viewDidDisappear:(BOOL)animated {
     %orig;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    if (cultivationView) {
-        [cultivationView removeFromSuperview];
-        cultivationView = nil;
-    }
+
+    UIView *existing = [self.view viewWithTag:kTMCCultivationTag];
+    if (existing) [existing removeFromSuperview];
+    cultivationView = nil;
 }
 
 - (void)tmc_handleBatteryNotification:(NSNotification *)note {
@@ -906,8 +1041,8 @@ static TMCCultivationView *cultivationView = nil;
             if (device.batteryState == UIDeviceBatteryStateCharging ||
                 device.batteryState == UIDeviceBatteryStateFull) {
                 cultivationView = [[TMCCultivationView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+                cultivationView.tag = kTMCCultivationTag;
                 [self.view addSubview:cultivationView];
-                [self.view bringSubviewToFront:cultivationView];
                 [cultivationView updateTuVi:(int)(device.batteryLevel * 100)];
             }
         } else {
