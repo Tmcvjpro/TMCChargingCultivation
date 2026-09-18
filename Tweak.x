@@ -638,7 +638,7 @@ CultivationStatus getCultivationStatus(int battery) {
     } else if (majorLevel == 7) {
         auraColor = [UIColor colorWithRed:0.6 green:0.0 blue:0.8 alpha:1.0];
         qiBirthRate = 250.0;
-        self.backgroundLayer.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.4].CGColor;
+        self.backgroundLayer.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.4];
         self.spaceFragmentsLayer.opacity = 1.0;
         CABasicAnimation *pulseSp = [CABasicAnimation animationWithKeyPath:@"opacity"];
         pulseSp.fromValue = @0.2;
